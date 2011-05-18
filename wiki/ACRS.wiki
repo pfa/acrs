@@ -1,0 +1,40 @@
+#summary Automatic classless route summarization
+
+= Introduction =
+
+The source here includes an IP address library, the AcrsRoute4 library for IPv4 summarization, and a demonstration command line program that uses the library. The code is written in C++.
+
+The algorithm ACRS uses is very simple. It operates on sorted lists of routes consisting of, at least, a network address, a prefix length, and a metric.
+
+For any two routes in the list to be summarized, their metrics must match, their prefix lengths must match, and the following condition must be true: The broadcast address of the lower route, plus one, must be equal to the network address of the higher route.
+
+If the three above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route.
+
+= Obtaining and Building =
+
+The general process:
+  # Install subversion
+  # Install a C++ compiler
+  # Download the code from googlecode using subversion
+  # Compile the code
+  # Run the demo program
+
+For a Debian-based system:
+
+{{{
+sudo apt-get install subversion g++
+svn checkout http://acrs.googlecode.com/svn/trunk/ acrs-read-only
+cd acrs-read-only
+g++ -o acrs-demo acrs.cpp acrs-demo.cpp ip4addr.cpp
+./acrs-demo
+}}}
+
+= Using the demo =
+
+After compiling, try this with the demo:
+
+{{{
+./acrs-parser 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+}}}
+
+It should output 10.0.0.0/24. Try some other routes. Currently, the demo will not let you specify a metric; it sets the metric of each route to 0 before ACRS summarizes the routes.
