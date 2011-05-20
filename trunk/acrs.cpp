@@ -77,7 +77,29 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
-			if (prev->getBroadcast(0) + 1 == (*cur).getNetwork(0))
+			/* Prefix lengths must match */
+			if (prev->getPlen() != cur->getPlen())
+			{
+				continue;
+			}
+
+			/* Can't summarize non-even subnets
+			 * (happens with host routes) */
+			if (prev->getNetwork(0) & 1)
+			{
+				continue;
+			}
+
+			/* Round addresses down to the network id if necessary.
+			 * 
+			 * XXX This should be done once when the route is added.
+			 */
+			if (prev->getAddr(0) != prev->getNetwork(0))
+			{
+				prev->setAddr_i(prev->getNetwork(0));
+			}
+
+			if (prev->getBroadcast(0) + 1 == cur->getNetwork(0))
 			{
 				/* Can summarize these */
 				rtlist.erase(cur);
