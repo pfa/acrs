@@ -10,6 +10,15 @@ For any two routes in the list to be summarized, their metrics must match, their
 
 If the three above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route.
 
+There are a few other caveats dealt with by the library to make some edge conditions come out right:
+
+  # Networks are rounded down to the nearest network ID when entered. So, using 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, is fine; it gets rounded down to 192.168.1.0/24.
+  # Two networks cannot be summarized if the lower network is an odd number. This occurs with host routes. For example, 1.1.1.7/32 and 1.1.1.8/32 will not be summarized with each other, since doing so would not produce a valid network ID (1.1.1.7/31).
+  # Lists of routes must be sorted in the following manner:
+    # Primary sort by metric (sort order doesn't matter)
+    # Secondary by prefix length in descending order
+    # Tertiary sort by network address in ascending order
+
 = Obtaining and Building =
 
 The general process:
@@ -34,7 +43,26 @@ g++ -o acrs-demo acrs.cpp acrs-demo.cpp ip4addr.cpp
 After compiling, try this with the demo:
 
 {{{
-./acrs-parser 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
 }}}
 
 It should output 10.0.0.0/24. Try some other routes. Currently, the demo will not let you specify a metric; it sets the metric of each route to 0 before ACRS summarizes the routes.
+
+These networks will not be summarized:
+
+{{{
+./acrs-demo 1.1.1.7/32 1.1.1.8/32
+}}}
+
+Why? Because 1.1.1.7/31 is not a valid network ID. There is a check in the code that the lowest subnet must be even for summarization to occur. The following will work:
+
+{{{
+./acrs-demo 1.1.1.7/32 1.1.1.8/32 1.1.1.6/32 1.1.1.9/32
+}}}
+
+This works because 6/32 and 7/32 are summarized into 6/31, 8/32 and 9/32 are summarized into 8/31, then 6/31 and 8/31 are summarized into 6/30.
+
+= To do =
+
+# It seems more natural for ACRS to be a container
+# 
