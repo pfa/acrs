@@ -83,6 +83,12 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
+			/* Metrics must match */
+			if (prev->getMetric() != cur->getMetric())
+			{
+				continue;
+			}
+
 			/* Can't summarize non-even subnets
 			 * (happens with host routes) */
 			if (prev->getNetwork(0) & 1)
