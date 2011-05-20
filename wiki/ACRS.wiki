@@ -76,6 +76,6 @@ This works because 6/32 and 7/32 are summarized into 6/31, 8/32 and 9/32 are sum
 
   # It seems more natural for ACRS to be a container
   # Validation being done in the acrs-demo should be handled within acrs. This will be easier when acrs is a container.
-  # Remove duplicate entries from summarized lists as a last step (e.g. if someone enters ./acrs-demo 1.0.0.0/8 1.0.0.0/8 it will keep both routes; it should remove one from the list).
-  # Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs.
+  # Remove overlapping address space from summarized routes. For example, a list with 192.168.0.0/16 and 192.168.1.0/24 will return the routes as-is, without summarizing into 192.168.0.0/16. This should handle cases where the same exact route is entered twice.
+  # Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs. If C++ specific, it would be nice to make use of overloaded get*() functions so we don't have to pass a null pointer to retrieve an address as an integer.
   # Make sure IP address library in use handles different endianness?
