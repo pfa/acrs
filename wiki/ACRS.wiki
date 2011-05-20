@@ -54,7 +54,7 @@ These networks will not be summarized:
 ./acrs-demo 1.1.1.7/32 1.1.1.8/32
 }}}
 
-Why? Because 1.1.1.7/31 is not a valid network ID. There is a check in the code that the lowest subnet must be even for summarization to occur. The following will work:
+Why? Because 1.1.1.7/31 is not a valid network ID. There is a check in the code that the lowest subnet must be even for summarization to occur. The following will work, however:
 
 {{{
 ./acrs-demo 1.1.1.7/32 1.1.1.8/32 1.1.1.6/32 1.1.1.9/32
@@ -62,7 +62,10 @@ Why? Because 1.1.1.7/31 is not a valid network ID. There is a check in the code 
 
 This works because 6/32 and 7/32 are summarized into 6/31, 8/32 and 9/32 are summarized into 8/31, then 6/31 and 8/31 are summarized into 6/30.
 
-= To do =
+= Partial TODO =
 
 # It seems more natural for ACRS to be a container
-# 
+# Validation being done in the acrs-demo should be handled within acrs. This will be easier when acrs is a container.
+# Remove duplicate entries from summarized lists as a last step (e.g. if someone enters ./acrs-demo 1.0.0.0/8 1.0.0.0/8 it will keep both routes; it should remove one from the list).
+# Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs.
+# The IP address library in use can use more testing.
