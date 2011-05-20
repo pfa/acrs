@@ -19,6 +19,16 @@ There are a few other caveats dealt with by the library to make some edge condit
     # Secondary by prefix length in descending order
     # Tertiary sort by network address in ascending order
 
+= Why use it? =
+
+Almost any network that is large enough to _need_ summarization already has someone that thought out its design well enough to provide a good set of summary routes; if not, having automatically summarized routes is probably the least of the network's problems.
+
+Practically, I see ACRS mainly as a tool for the networker's toolkit. If you have a large number of unsorted single IPs and you want to get an idea of their range, ACRS can treat them like host routes and summarize chunks of them as far as possible.
+
+One possible use for ACRS would be in routing protocol for networks where manual summarization is simply impossible, like randomly dispersed sensor networks or MANETs. Clusters of nodes must be able to form into a hierarchy, then two clusters can advertise summary routes to each other rather than a route for every network.
+
+Using ACRS sacrifices some processing power for less memory usage (routing tables), so that is another consideration. The method used for summarization can almost certainly be improved on to reduce processing.
+
 = Obtaining and Building =
 
 The general process:
@@ -64,8 +74,8 @@ This works because 6/32 and 7/32 are summarized into 6/31, 8/32 and 9/32 are sum
 
 = Partial TODO =
 
-# It seems more natural for ACRS to be a container
-# Validation being done in the acrs-demo should be handled within acrs. This will be easier when acrs is a container.
-# Remove duplicate entries from summarized lists as a last step (e.g. if someone enters ./acrs-demo 1.0.0.0/8 1.0.0.0/8 it will keep both routes; it should remove one from the list).
-# Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs.
-# The IP address library in use can use more testing.
+  # It seems more natural for ACRS to be a container
+  # Validation being done in the acrs-demo should be handled within acrs. This will be easier when acrs is a container.
+  # Remove duplicate entries from summarized lists as a last step (e.g. if someone enters ./acrs-demo 1.0.0.0/8 1.0.0.0/8 it will keep both routes; it should remove one from the list).
+  # Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs.
+  # Make sure IP address library in use handles different endianness?
