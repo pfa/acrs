@@ -96,15 +96,6 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
-			/* Round addresses down to the network id if necessary.
-			 * 
-			 * XXX This should be done once when the route is added.
-			 */
-			if (prev->getAddr(0) != prev->getNetwork(0))
-			{
-				prev->setAddr_i(prev->getNetwork(0));
-			}
-
 			if (prev->getBroadcast(0) + 1 == cur->getNetwork(0))
 			{
 				/* Can summarize these */
@@ -159,11 +150,11 @@ namespace IP4Addr { namespace Acrs {
 
 	std::ostream & operator<<(std::ostream & os, AcrsRoute4 & rt)
 	{
-		char addr[INET_ADDRSTRLEN];
+		char net[INET_ADDRSTRLEN];
 
-		rt.getAddr(addr);
+		rt.getNetwork(net);
 
-		os << addr << "/" << (int) rt.getPlen() << " in "
+		os << net << "/" << (int) rt.getPlen() << " in "
 		   << rt.getMetric();
 
 		return os;
