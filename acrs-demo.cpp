@@ -41,7 +41,8 @@
 
 #include "acrs.hpp"
 
-int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts, char * rts[]);
+int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
+             char * rts[]);
 int check_network(char * netstr);
 int check_octet(char * octetp);
 int check_preflen(char * s);
@@ -53,7 +54,8 @@ int main(int argc, char * argv[])
 
 	if (argc == 1)
 	{
-		std::cerr << "Usage: acrs-parser <ROUTE> [ROUTE ROUTE ...]" << std::endl;
+		std::cerr << "Usage: acrs-parser <ROUTE> [ROUTE ROUTE ...]"
+		          << std::endl;
 		return 1;
 	}
 
@@ -65,7 +67,8 @@ int main(int argc, char * argv[])
 
         IP4Addr::Acrs::Summarize(rtlist);
 
-        for (std::list<IP4Addr::Acrs::AcrsRoute4>::iterator iter = rtlist.begin();
+        for (std::list<IP4Addr::Acrs::AcrsRoute4>::iterator iter =
+	                                                        rtlist.begin();
              iter != rtlist.end();
              iter++)
         {
@@ -75,7 +78,8 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts, char * rts[])
+int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
+             char * rts[])
 {
 	for (int i = 0; i < numrts; i++)
 	{
@@ -111,7 +115,8 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts, char * r
 		{
 			if (check_preflen(ptr2) < 0)
 			{
-				std::cerr << "Invalid prefix length" << std::endl;
+				std::cerr << "Invalid prefix length"
+				          << std::endl;
 				return 1;
 			}
 		}
@@ -123,6 +128,11 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts, char * r
 
 		preflen = atoi(ptr2);
 
+		/* Need to find a better way to deal with malloc'd routes;
+		 * since the acrs library will remove some routes as it
+		 * summarizes, we can't just free everything when the program
+		 * ends.
+		 */
 		newrt = new IP4Addr::Acrs::AcrsRoute4(ipstr, preflen, metric);
 		rtlist.insert(rtlist.end(), *newrt);
 	}
@@ -142,15 +152,25 @@ int check_network(char * netstr)
 	octetp = strtok_r(netstr, ".", &savep);
 
 	if (check_octet(octetp))
+	{
 		return 1;
+	}
 	else
+	{
 		valid++;
+	}
 	
 	while (octetp = strtok_r(NULL, ".", &savep))
+	{
 		if (check_octet(octetp))
+		{
 			return 1;
+		}
 		else
+		{
 			valid++;
+		}
+	}
 
 	return ! (valid == 4);
 }
@@ -159,13 +179,17 @@ int check_octet(char * octetp)
 {
 	int num;
 
-	if (strlen(octetp) < 4 && is_number(octetp)) {
+	if (strlen(octetp) < 4 && is_number(octetp))
+	{
 		num = atoi(octetp);
 
-		if (num > 255 && num < 0) {
+		if (num > 255 && num < 0)
+		{
 			return 1;
 		}
-	} else {
+	}
+	else
+	{
 		return 1;
 	}
 }
@@ -180,16 +204,24 @@ int check_preflen(char * s)
 	int plen;
 
 	if (is_number(s))
+	{
 		atoi(s);
+	}
 	else
+	{
 		return -1;
+	}
 
 	plen = atoi(s);
 
 	if (plen > 32 || plen < 0)
+	{
 		return -1;
+	}
 	else
+	{
 		return plen;
+	}
 }
 
 /* is_number
@@ -202,12 +234,18 @@ int is_number(char * s)
 
 	/* No negative numbers */
 	if (s[0] == '-')
+	{
 		return 0;
+	}
 
 	/* Are any chars in the string not a number? */
 	for (i = 0; s[i] != '\0'; i++)
+	{
 		if (! isdigit(s[i]))
+		{
 			return 0;
+		}
+	}
 
 	/* If the string length was greater than 0, this was a number */
 	return (i > 0);
