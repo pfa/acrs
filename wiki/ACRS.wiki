@@ -93,7 +93,7 @@ Output:
 1.1.1.6/32 in 0
 }}}
 
-Why? Because 1.1.1.5/31 is not a valid network ID. There is a check in the code that the lower subnet in a list must be even for summarization to occur. The following will work:
+Why? Because 1.1.1.5/31 is not a valid network ID. There is a check in the code that the lower subnet in a pair must be even for summarization to occur. The following will work:
 
 {{{
 ./acrs-demo 1.1.1.5/32 1.1.1.4/32
