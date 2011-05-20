@@ -8,11 +8,11 @@ The algorithm ACRS uses is very simple. It operates on sorted lists of routes co
 
 For any two routes in the list to be summarized, their metrics must match, their prefix lengths must match, and the following condition must be true: The broadcast address of the lower route, plus one, must be equal to the network address of the higher route.
 
-If the three above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route.
+If the three above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route. For example, ACRS can summarize 192.168.16.0/25 and 192.168.16.128/25 into 192.168.16.0/24, but an administrator might know that it's safe to summarize these routes all the way down to 192.168.0.0/16. Since this information is not presented to ACRS, it has no way to account for such situations.
 
 There are a few other caveats dealt with by the library to make some edge conditions come out right:
 
-  # Networks are rounded down to the nearest network ID when entered. So, using 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, is fine; it gets rounded down to 192.168.1.0/24.
+  # The address added to the route list is not assumed to be a network address, necessarily. The network ID is requested from the bundled IP address class. For example, if you specify 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, this is fine; the network ID is used, not the IP address specified.
   # Two networks cannot be summarized if the lower network is an odd number. This occurs with host routes. For example, 1.1.1.7/32 and 1.1.1.8/32 will not be summarized with each other, since doing so would not produce a valid network ID (1.1.1.7/31).
   # Lists of routes must be sorted in the following manner:
     # Primary sort by metric (sort order doesn't matter)
