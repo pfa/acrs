@@ -91,7 +91,6 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
 		uint64_t hash;
 		int metric = 0;
 		char * prefix = rts[i];
-		IP4Addr::Acrs::AcrsRoute4 * newrt;
 
 		/* Validation */
 		ptr1 = strtok_r(prefix, "/", &saveptr);
@@ -128,13 +127,8 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
 
 		preflen = atoi(ptr2);
 
-		/* Need to find a better way to deal with malloc'd routes;
-		 * since the acrs library will remove some routes as it
-		 * summarizes, we can't just free everything when the program
-		 * ends.
-		 */
-		newrt = new IP4Addr::Acrs::AcrsRoute4(ipstr, preflen, metric);
-		rtlist.insert(rtlist.end(), *newrt);
+		IP4Addr::Acrs::AcrsRoute4 newrt(ipstr, preflen, metric);
+		rtlist.insert(rtlist.end(), newrt);
 	}
 
 	return 0;
