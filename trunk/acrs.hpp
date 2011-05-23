@@ -23,15 +23,16 @@ namespace IP4Addr { namespace Acrs {
 
 		friend std::ostream & operator<<(std::ostream & os,
 		                                 AcrsRoute4 & rt);
-		friend bool acrsCmp(AcrsRoute4& rt1, AcrsRoute4& rt2);
-		friend bool Summarize(std::list<AcrsRoute4> & rtlist);
 		bool setMetric(int metric);
 		int getMetric() { return m_metric; };
 	};
 
 	bool acrsCmp(AcrsRoute4& rt1, AcrsRoute4& rt2);
-	bool Summarize(std::list<AcrsRoute4> & rtlist);
-	std::ostream & operator<<(std::ostream & os, IP4Addr::IP4Addr & ip);
+	bool overlapCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2);
+	bool Summarize(std::list<AcrsRoute4> & rtlist, bool logging,
+	               std::ostream & os);
+	bool SummarizeOverlap(std::list<AcrsRoute4> & rtlist, bool logging,
+	                      std::ostream & os);
 } }
 
 #endif /* ACRS_ROUTE_H */

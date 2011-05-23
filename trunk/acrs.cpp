@@ -28,40 +28,165 @@
 namespace IP4Addr { namespace Acrs {
 	/* Compare two AcrsRoute4 to determine which should come first.
 	 *
-	 * Highest prefix length always comes first.
-	 * If prefix lengths match, lowest network address comes first.
-	 * If prefix lengths and network addresses match, lowest metric comes
-	 * first.
+	 * Sort by prefix length in descending order,
+	 * then by network address in ascending order,
+	 * then by metric in ascending order.
 	 */
 	bool acrsCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2)
 	{
-		if (rt1.getMetric() < rt2.getMetric()) {
+		if (rt1.getMetric() < rt2.getMetric())
+		{
 			return true;
-		} else if (rt1.getMetric() > rt2.getMetric()) {
+		}
+		else if (rt1.getMetric() > rt2.getMetric())
+		{
 			return false;
 		}
 
 		/* If reached, metrics are the same */
 
-		if (rt1.getPlen() > rt2.getPlen()) {
+		if (rt1.getPlen() > rt2.getPlen())
+		{
 			return true;
-		} else if (rt1.getPlen() < rt2.getPlen()) {
+		}
+		else if (rt1.getPlen() < rt2.getPlen())
+		{
 			return false;
 		}
 
 		/* If reached, prefix lengths are the same */
 
-		if (rt1.getNetwork(0) < rt2.getNetwork(0)) {
+		if (rt1.getNetwork(0) < rt2.getNetwork(0))
+		{
 			return true;
-		} else {
+		}
+		else
+		{
 			return false;
 		}
 	}
 
-	/* Summarize a route list; return true if any summarization was
-	 * done, return false otherwise.
+	/* Comparison function to sort for overlapping routes.
+	 * 
+	 * Sort by network address in ascending order,
+	 * then by prefix length in ascending order,
+	 * then by metric in ascending order.
 	 */
-	bool Summarize(std::list<AcrsRoute4> & rtlist)
+	bool overlapCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2)
+	{
+		if (rt1.getNetwork(0) < rt2.getNetwork(0))
+		{
+			return true;
+		}
+		else if (rt1.getNetwork(0) > rt2.getNetwork(0))
+		{
+			return false;
+		}
+
+		/* If reached, network addresses are the same */
+
+		if (rt1.getPlen() < rt2.getPlen())
+		{
+			return true;
+		}
+		else if (rt1.getPlen() > rt2.getPlen())
+		{
+			return false;
+		}
+
+		/* If reached, prefix lengths the same */
+
+		if (rt1.getMetric() < rt2.getMetric())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/* Summarize and remove overlapping address space.
+	 * return true if any summarization was done, return false otherwise.
+	 */
+	bool Summarize(std::list<AcrsRoute4> & rtlist, bool logging,
+	               std::ostream & os)
+	{
+		if (logging)
+		{
+			os << "* Round 1 summarization:" << std::endl;
+		}
+
+		bool summarized = SummarizeOverlap(rtlist, logging, os);
+		std::list<AcrsRoute4>::iterator oiter;
+
+		if (logging)
+		{
+			os << "* Round 2 summarization:" << std::endl;
+		}
+
+		rtlist.sort(overlapCmp);
+
+		AcrsRoute4 * prev = NULL;
+
+		for (std::list<AcrsRoute4>::iterator cur = rtlist.begin();
+		     cur != rtlist.end();
+		     prev = &(*cur), cur++)
+		{
+			if (! prev)
+			{
+				continue;
+			}
+
+			if ((cur->getNetwork(0) & prev->getSnmask(0)) ==
+			    prev->getNetwork(0))
+			{
+				/* Only use if the summary route would
+				 * have an equal or better metric compared to
+				 * the specific one */
+				if (cur->getMetric() < prev->getMetric())
+				{
+					continue;
+				}
+
+				/* Overlapping prefixes */
+				AcrsRoute4 * save = &(*cur);
+				rtlist.erase(cur);
+				cur--;
+				summarized = true;
+
+				if (logging)
+				{
+					os << "*   Summarized '" << *prev
+					   << "' and '" << *save << "' into '"
+					   << *cur << "'" << std::endl;
+				}
+			}
+		}
+
+		if (logging)
+		{
+			os << "* Finished. ";
+
+			if (summarized)
+			{
+				os << "List was summarized."
+			           << std::endl;
+			}
+			else
+			{
+				os << "No summarization performed."
+			           << std::endl;
+			}
+		}
+		return summarized;
+	}
+
+	/* Summarize a route list without caring about duplicates.
+	 * return true if any summarization was done, return false otherwise.
+	 */
+	bool SummarizeOverlap(std::list<AcrsRoute4> & rtlist,
+	                      bool logging, std::ostream & os)
 	{
 		AcrsRoute4 * prev = NULL;
 		bool summarized = false;
@@ -77,7 +202,7 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
-			/* Prefix lengths must match */
+			// Prefix lengths must match
 			if (prev->getPlen() != cur->getPlen())
 			{
 				continue;
@@ -89,20 +214,22 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
-			/* Can't summarize non-even subnets
-			 * (happens with host routes) */
-			if (prev->getNetwork(0) & 1)
-			{
-				continue;
-			}
-
 			if (prev->getBroadcast(0) + 1 == cur->getNetwork(0))
 			{
+				AcrsRoute4 * save = &(*cur);
+
 				/* Can summarize these */
 				rtlist.erase(cur);
 				cur--;
 				cur->setPlen(cur->getPlen() - 1);
 				summarized = true;
+
+				if (logging)
+				{
+					os << "*   Summarized '" << *prev
+					   << "' and '" << *save << "' into '"
+					   << *cur << "'" << std::endl;
+				}
 			}
 		}
 
@@ -111,7 +238,7 @@ namespace IP4Addr { namespace Acrs {
 		 */
 		if (summarized == true)
 		{
-			Summarize(rtlist);
+			SummarizeOverlap(rtlist, logging, os);
 			return true;
 		}
 		else

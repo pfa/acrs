@@ -51,6 +51,8 @@ int is_number(char * s);
 int main(int argc, char * argv[])
 {
 	std::list<IP4Addr::Acrs::AcrsRoute4> rtlist;
+	int startind = 1;
+	bool logging = false;
 
 	if (argc == 1)
 	{
@@ -59,13 +61,23 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	if (get_list(rtlist, argc - 1, &argv[1]) == 1)
+	/* Check for log flag, must be first argument */
+	if (strlen(argv[1]) == 2)
+	{
+		if (argv[1][0] == '-' && argv[1][1] == 'l')
+		{
+			startind = 2;	
+			logging = true;
+		}
+	}
+
+	if (get_list(rtlist, argc - startind, &argv[startind]) == 1)
 	{
 		std::cerr << "Bad list." << std::endl;
 		return 2;
 	}
 
-        IP4Addr::Acrs::Summarize(rtlist);
+        Summarize(rtlist, logging, std::cout);
 
         for (std::list<IP4Addr::Acrs::AcrsRoute4>::iterator iter =
 	                                                        rtlist.begin();
