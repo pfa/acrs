@@ -22,9 +22,9 @@ There are a few other caveats handled by the library to make some edge condition
 
 = Why use it? =
 
-Almost any network that is large enough to _need_ summarization already has someone that thought out its design well enough to provide a good set of summary routes; if not, having automatically summarized routes is probably the least of the network's problems.
+Almost any network that is large enough to _need_ summarization already has someone that thought out its design well enough to provide a good set of summary routes; if not, not having automatically summarized routes is probably the least of the network's problems.
 
-I wrote this mainly as a curiosity that I might integrate into another for-fun project of mine to provide route summarization: http://code.google.com/p/advrp/
+I wrote this mainly as a curiosity that I might integrate into another for-fun project of mine to provide automatic route summarization: http://code.google.com/p/advrp/
 
 However, this can also be useful as a general purpose tool whenever large numbers of IP addresses need to be collated into a list and summarization is desirable, such as for ACLs/firewall rules. If you have a tool that generated a list of 1000 specific IP addresses you wish to blacklist and you suspect there is some summarization that can be done, feed that list through ACRS. Any summarization that is possible, ACRS will do, because it can consider individual IP addresses as host routes. And, it will not mis-use a summary address that blocks extra IPs by accident -- which you may do if you haven't had coffee.
 
