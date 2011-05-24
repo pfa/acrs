@@ -198,6 +198,8 @@ int check_octet(char * octetp)
 	{
 		return 1;
 	}
+
+	return 0;
 }
 
 /* check_preflen
