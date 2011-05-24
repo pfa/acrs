@@ -114,7 +114,7 @@ namespace IP4Addr { namespace Acrs {
 	{
 		if (logging)
 		{
-			os << "* Round 1 summarization:" << std::endl;
+			os << "* Main summarization:" << std::endl;
 		}
 
 		bool summarized = SummarizeOverlap(rtlist, logging, os);
@@ -122,7 +122,7 @@ namespace IP4Addr { namespace Acrs {
 
 		if (logging)
 		{
-			os << "* Round 2 summarization:" << std::endl;
+			os << "* Overlap removal:" << std::endl;
 		}
 
 		rtlist.sort(overlapCmp);
@@ -150,17 +150,17 @@ namespace IP4Addr { namespace Acrs {
 				}
 
 				/* Overlapping prefixes */
-				AcrsRoute4 * save = &(*cur);
+				if (logging)
+				{
+					os << "*   Removing '" << *cur
+					   << "', which falls within '"
+					   << *prev << "'" << std::endl;
+				}
+
 				rtlist.erase(cur);
 				cur--;
 				summarized = true;
 
-				if (logging)
-				{
-					os << "*   Summarized '" << *prev
-					   << "' and '" << *save << "' into '"
-					   << *cur << "'" << std::endl;
-				}
 			}
 		}
 
@@ -214,21 +214,35 @@ namespace IP4Addr { namespace Acrs {
 				continue;
 			}
 
-			if (prev->getBroadcast(0) + 1 == cur->getNetwork(0))
+			if (prev->getBroadcast(0) + 1 != cur->getNetwork(0))
 			{
-				AcrsRoute4 * save = &(*cur);
+				continue;
+			}
 
+			/* Net address of the resulting network must be equal
+			 * to net address of lowest network. */
+			char buf[INET_ADDRSTRLEN];
+			prev->getNetwork(buf);
+			AcrsRoute4 possible(buf, prev->getPlen() - 1, 0);
+			if (possible.getNetwork(0) == prev->getNetwork(0))
+			{
 				/* Can summarize these */
-				rtlist.erase(cur);
-				cur--;
-				cur->setPlen(cur->getPlen() - 1);
-				summarized = true;
 
 				if (logging)
 				{
 					os << "*   Summarized '" << *prev
-					   << "' and '" << *save << "' into '"
-					   << *cur << "'" << std::endl;
+					   << "' and '" << *cur << "' into '";
+				}
+
+				rtlist.erase(cur);
+				cur--;
+				cur->setPlen(cur->getPlen() - 1);
+
+				summarized = true;
+
+				if (logging)
+				{
+					os << *cur << "'" << std::endl;
 				}
 			}
 		}
