@@ -1,0 +1,158 @@
+#summary Automatic classless route summarization
+
+<wiki:toc max_depth="1" />
+
+= Introduction =
+
+The source here includes an IP address library, the AcrsRoute4 library for IPv4 summarization, and a demonstration command line program that uses the library. The code is written in C++.
+
+The algorithm ACRS uses is very simple. It occurs in two steps: main summarization and overlap removal.
+
+Main summarization operates on lists of routes consisting of, at least, a network address, a prefix length, and a metric. In the implementation here, it operates on routes of the AcrsRoute4 class. Before summarizing, ACRS sorts the list in the following manner:
+
+    # Primary sort by metric (sort order doesn't matter)
+    # Secondary by prefix length in descending order
+    # Tertiary sort by network address in ascending order
+
+Once the list is sorted, each route in the list is compared with the next route in the list. For any two routes in the list to be summarized, these conditions must be true:
+
+  # Their metrics must match
+  # Their prefix lengths must match
+  # The broadcast address of the lower route, plus one, must be equal to the network address of the higher route
+  # The network address of the potential summary route must be equal to the network address of the lower route
+
+If the three above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route. For example, ACRS can summarize 192.168.16.0/25 and 192.168.16.128/25 into 192.168.16.0/24, but an administrator might know that it's safe to summarize these routes all the way down to 192.168.0.0/16. Since this information is not presented to ACRS, it has no way to account for such situations.
+
+Once main summarization is finished, overlap removal occurs to remove routes that specify identical address space. This is done by re-sorting the routes by:
+
+  # Primary sort by network address in ascending order
+  # Secondary sort by prefix length in ascending order
+  # Tertiary sort by metric in ascending order
+
+Once the list is sorted, each route is again compared to the next route in the list. If the following two conditions are true, the networks may be summarized:
+
+  # The higher route's network address ANDed with the lower route's subnet mask is equal to the lower route's network address
+  # The metric of the lower route must be less than or equal to the metric of the higher route
+
+When two routes are found to overlap, the higher network is removed from the list.
+
+This is necessary because main summarization's rules for summarizing routes will not catch overlapping address space.
+
+One additional note, which may come up as you play with the demo program:
+
+The address added to the route list is not assumed to be a network address, necessarily. The network ID is determined as though the IP address given were a host address; that is, the address is ANDed with the mask to make sure it's a valid network ID. For example, if you specify 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, this is fine; the network ID of 192.168.1.0/24 is used, not the IP address specified.
+
+= Why use it? =
+
+Almost any network that is large enough to _need_ summarization already has someone that thought out its design well enough to provide a good set of summary routes; if not, not having automatically summarized routes is probably the least of the network's problems.
+
+I wrote this mainly as a curiosity that I might integrate into another for-fun project of mine to provide automatic route summarization: http://code.google.com/p/advrp/
+
+However, this can also be useful as a general purpose tool whenever large numbers of IP addresses need to be collated into a list and summarization is desirable, such as for ACLs/firewall rules. If you have a tool that generated a list of 1000 specific IP addresses you wish to blacklist and you suspect there is some summarization that can be done, feed that list through ACRS. Any summarization that is possible, ACRS will do, because it can consider individual IP addresses as host routes. And, it will not mis-use a summary address that blocks extra IPs by accident -- which you may do if you haven't had coffee.
+
+Another possible use for ACRS would be in routing protocol for networks where route summarization is possible, but manual summarization isn't feasible, like randomly dispersed sensor networks or MANETs. Clusters of nodes must be able to form into a hierarchy (which is, admittedly, the more difficult undertaking), then two clusters can advertise summary routes to each other rather than a route for each network.
+
+Using ACRS sacrifices some processing power for less memory usage (routing tables), so that is another consideration. The method used for summarization can be optimized to reduce processing, and only needs to be recomputed when routes change.
+
+= Obtaining and building =
+
+The general process:
+  # Install subversion
+  # Install a C++ compiler
+  # Download the code from googlecode using subversion
+  # Compile the code
+  # Run the demo program
+
+For a Debian-based system:
+
+{{{
+sudo apt-get install subversion g++
+svn checkout http://acrs.googlecode.com/svn/trunk/ acrs-read-only
+cd acrs-read-only
+g++ -o acrs-demo acrs.cpp acrs-demo.cpp ip4addr.cpp
+./acrs-demo
+}}}
+
+= Using the demo =
+
+After compiling, try this with the demo:
+
+{{{
+./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+}}}
+
+Output:
+
+{{{
+10.0.0.0/24 in 0
+}}}
+
+Try some other routes, too. The "in 0" message is the metric, which can be ignored while you're using the demo. The library supports different metrics, but the demo does not. It assigns all routes a metric of 0, so they are all eligible to be summarized with each other as far as that condition is concerned.
+
+You can enable logging by passing the -l flag as the first argument to the acrs-demo command. For example:
+
+{{{
+./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
+}}}
+
+Output:
+
+{{{
+* Main summarization:
+*   Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0'
+*   Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0'
+*   Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
+* Overlap removal:
+*   Removing '10.0.0.0/16 in 0', which falls within '10.0.0.0/16 in 0'
+*   Removing '10.0.0.0/23 in 0', which falls within '10.0.0.0/16 in 0'
+* Finished. List was summarized.
+10.0.0.0/16 in 0
+}}}
+
+For non-routing purposes (such as access lists), lists of individual IP addresses can be summarized by ignoring the metric (which the demo already does) and giving each address a /32 mask:
+
+{{{
+./acrs-demo 1.1.1.7/32 1.1.1.6/32 1.1.1.4/32 1.1.1.5/32
+}}}
+
+Output:
+
+{{{
+1.1.1.4/30 in 0
+}}}
+
+This works because 1.1.1.4/32 and 1.1.1.5/32 are first summarized into 1.1.1.4/31, then 1.1.1.6/32 and 1.1.1.7/32 are summarized into 1.1.1.6/31, and finally 1.1.1.4/31 and 1.1.1.6/31 are summarized into 1.1.1.4/30.
+
+These networks will not be summarized:
+
+{{{
+./acrs-demo 1.1.1.5/32 1.1.1.6/32
+}}}
+
+Output:
+
+{{{
+1.1.1.5/32 in 0
+1.1.1.6/32 in 0
+}}}
+
+Why? Because 1.1.1.5/31 is not a valid network ID. There is a check in the code that the lower subnet in a pair must be even for summarization to occur. The following will work:
+
+{{{
+./acrs-demo 1.1.1.5/32 1.1.1.4/32
+}}}
+
+Output:
+
+{{{
+1.1.1.4/31 in 0
+}}}
+
+The order of routes on the command line doesn't matter; they are sorted as needed by the library.
+
+= Partial TODO =
+
+  # It would be nice for ACRS to be a template
+  # Validation being done in the acrs-demo should be handled by acrs
+  # Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs. If C++ specific, it would be nice to make use of overloaded get`*`() functions so we don't have to pass a null pointer to retrieve an address as an integer.
+  # Make sure IP address library in use handles different endianness?
