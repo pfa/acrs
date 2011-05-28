@@ -138,7 +138,9 @@ Output:
 1.1.1.6/32 in 0
 }}}
 
-Why? Because 1.1.1.5/31 is not a valid network ID. There is a check in the code that the lower subnet in a pair must be even for summarization to occur. The following will work:
+Why? The real life justification is that 1.1.1.5/31 is not a valid network ID. In the code, this is checked by ensuring that a potential summary route's network address is equal to the lower route's network address. The potential summary route, 1.1.1.5/31, has a network address of 1.1.1.4. This is not equal to the network address of the lower route (1.1.1.5), so the routes cannot be summarized.
+
+The following will work, however:
 
 {{{
 ./acrs-demo 1.1.1.5/32 1.1.1.4/32
@@ -154,7 +156,7 @@ The order of routes on the command line doesn't matter; they are sorted as neede
 
 = Partial TODO =
 
-  # It would be nice for ACRS to be a template
+  # It would be nice for ACRS to be templated
   # Validation being done in the acrs-demo should be handled by acrs
   # Code is currently written with the goal of being close-to-usable in a C program. Would be nice to make the code fully usable in both C and C++ programs. If C++ specific, it would be nice to make use of overloaded get`*`() functions so we don't have to pass a null pointer to retrieve an address as an integer.
   # Make sure IP address library in use handles different endianness?
