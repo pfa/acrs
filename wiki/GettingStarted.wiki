@@ -58,6 +58,45 @@ Using ACRS sacrifices some processing power for less memory usage (routing table
 
 = Obtaining and building =
 
+You can download the latest source either from the tarball on the Downloads tab or using subversion. Right now, there is no difference between the tarball and the subversion source, so getting the tarball is probably easiest (and it includes a precompiled binary).
+
+== From the tar file ==
+
+Steps:
+  # Download the tarball
+  # Extract the source code
+  # Either use the precompiled acrs-demo binary (in which case you're done), or install a C++ compiler and build from source
+
+For a Debian-based system:
+
+{{{
+wget http://acrs.googlecode.com/files/acrs-demo_0.1.tar.gz   # Replace version number if necessary
+tar -xzf acrs-demo_0.1.tar.gz
+cd acrs_demo
+./acrs-demo
+}}}
+
+== From source ==
+
+Steps:
+  # Install a C++ compiler
+  # Download the source
+  # Extract the source code
+  # Compile
+
+For a Debian-based system:
+
+{{{
+sudo apt-get install g++
+wget http://acrs.googlecode.com/files/acrs-demo_0.1.tar.gz   # Replace version number if necessary
+tar -xzf acrs-demo_0.1.tar.gz
+cd acrs_demo
+g++ -o acrs-demo *.cpp
+./acrs-demo
+}}}
+
+== From subversion ==
+
 The general process:
   # Install subversion
   # Install a C++ compiler
