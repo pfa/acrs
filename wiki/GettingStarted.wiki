@@ -76,20 +76,10 @@ cd acrs_demo
 ./acrs-demo
 }}}
 
-== From source ==
-
-Steps:
-  # Install a C++ compiler
-  # Download the source
-  # Extract the source code
-  # Compile
-
-For a Debian-based system:
+At this point, you can use the precompiled acrs-demo program. If you want to compile the source code yourself instead of using the precompiled program, you'll need to install a C++ compiler. See the following steps:
 
 {{{
 sudo apt-get install g++
-wget http://acrs.googlecode.com/files/acrs-demo_0.1.tar.gz   # Replace version number if necessary
-tar -xzf acrs-demo_0.1.tar.gz
 cd acrs_demo
 g++ -o acrs-demo *.cpp
 ./acrs-demo
