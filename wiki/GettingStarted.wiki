@@ -6,7 +6,7 @@
 
 The source here includes an IP address class, the AcrsRoute4 class for IPv4 summarization, and a demonstration command line program that uses the classes. The code is written in C++.
 
-Typically, route summarization is handled either manually or classfully. This library handles route summarization classlessly, and can be used to perform automatic summarization.
+Typically, route summarization is handled either manually or classfully. This library handles route summarization classlessly, and can be used to perform automatic summarization of arbitrary/changing lists of routes.
 
 = Explained =
 
