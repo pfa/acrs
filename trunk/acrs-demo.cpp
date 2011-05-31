@@ -47,6 +47,7 @@ int check_network(char * netstr);
 int check_octet(char * octetp);
 int check_preflen(char * s);
 int is_number(char * s);
+void usage(void);
 
 int main(int argc, char * argv[])
 {
@@ -56,8 +57,7 @@ int main(int argc, char * argv[])
 
 	if (argc == 1)
 	{
-		std::cerr << "Usage: acrs-parser <ROUTE> [ROUTE ROUTE ...]"
-		          << std::endl;
+		usage();
 		return 1;
 	}
 
@@ -66,6 +66,12 @@ int main(int argc, char * argv[])
 	{
 		if (argv[1][0] == '-' && argv[1][1] == 'l')
 		{
+			if (argc == 2)
+			{
+				usage();
+				return 1;
+			}
+
 			startind = 2;	
 			logging = true;
 		}
@@ -88,6 +94,13 @@ int main(int argc, char * argv[])
         }
 
 	return 0;
+}
+
+void usage(void)
+{
+	std::cerr << "Usage: acrs-parser [-l] <ROUTE> [ROUTE ROUTE ...]"
+	          << std::endl;
+	return;
 }
 
 int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
