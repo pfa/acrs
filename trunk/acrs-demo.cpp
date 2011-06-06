@@ -21,12 +21,12 @@
  *
  * Give me command line args like the following:
  *
- * ./acrs-parser 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+ * ./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
  *
  * And I'll summarize them and print to standard out. Example output for
  * the above:
  *
- * 10.0.0.0/24
+ * 10.0.0.0/24 in 0
  *
  * At the moment, metrics cannot be passed to acrs using this parser. All
  * routes are considered to have equal metrics.
@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	if (get_list(rtlist, argc - startind, &argv[startind]) == 1)
+	if (get_list(rtlist, argc - startind, &argv[startind]) == false)
 	{
 		std::cerr << "Bad list." << std::endl;
 		return 2;
@@ -98,7 +98,7 @@ int main(int argc, char * argv[])
 
 void usage(void)
 {
-	std::cerr << "Usage: acrs-parser [-l] <ROUTE> [ROUTE ROUTE ...]"
+	std::cerr << "Usage: acrs-demo [-l] <ROUTE> [ROUTE ROUTE ...]"
 	          << std::endl;
 	return;
 }
@@ -109,165 +109,33 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
 	for (int i = 0; i < numrts; i++)
 	{
 		char * ptr1, * ptr2;
-		char * saveptr;
+		char * saveptr = 0;
 		char ipstr[INET_ADDRSTRLEN];
-		in_addr_t network;
-		uint8_t preflen;
-		uint64_t hash;
-		int metric = 0;
 		char * prefix = rts[i];
 
 		/* Validation */
 		ptr1 = strtok_r(prefix, "/", &saveptr);
+		if (ptr1 == 0)
+		{
+			return false;
+		}
 		strncpy(ipstr, ptr1, sizeof(ipstr));
+
 		ptr2 = strtok_r(NULL, "/", &saveptr);
-		if (ptr1)
+		if (ptr2 == 0)
 		{
-			if (check_network(ptr1))
-			{
-				std::cerr << "Invalid network ID" << std::endl;
-				return 1;
-			}
+			return false;
 		}
-		else
-		{
-			std::cerr << "No network ID given" << std::endl;
-			return 1;
-		}
-	
-		if (ptr2)
-		{
-			if (check_preflen(ptr2) < 0)
-			{
-				std::cerr << "Invalid prefix length"
-				          << std::endl;
-				return 1;
-			}
-		}
-		else
-		{
-			std::cerr << "No prefix length given" << std::endl;
-			return 1;
-		}
-
-		preflen = atoi(ptr2);
-
+		
+		uint8_t preflen = atoi(ptr2);
+		int metric = 0;
 		IP4Addr::Acrs::AcrsRoute4 newrt(ipstr, preflen, metric);
+		if (newrt.isValid() == false)
+		{
+			return false;
+		}
 		rtlist.insert(rtlist.end(), newrt);
 	}
 
-	return 0;
-}
-
-/* check_network
- * Make sure this is a valid network in dotted decimal notation.
- * Return 1 on error, otherwise return 0.
- */
-int check_network(char * netstr)
-{
-	char * octetp, * savep;
-	int valid = 0;                 /* Number of valid octets found */
-
-	octetp = strtok_r(netstr, ".", &savep);
-
-	if (check_octet(octetp))
-	{
-		return 1;
-	}
-	else
-	{
-		valid++;
-	}
-	
-	while (octetp = strtok_r(NULL, ".", &savep))
-	{
-		if (check_octet(octetp))
-		{
-			return 1;
-		}
-		else
-		{
-			valid++;
-		}
-	}
-
-	return ! (valid == 4);
-}
-
-int check_octet(char * octetp)
-{
-	int num;
-
-	if (strlen(octetp) < 4 && is_number(octetp))
-	{
-		num = atoi(octetp);
-
-		if (num > 255 && num < 0)
-		{
-			return 1;
-		}
-	}
-	else
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-/* check_preflen
- * Determine if the given string is a valid prefix length.
- * Return -1 if there is a problem, otherwise return the prefix length as an
- * integer.
- */
-int check_preflen(char * s)
-{
-	int plen;
-
-	if (is_number(s))
-	{
-		atoi(s);
-	}
-	else
-	{
-		return -1;
-	}
-
-	plen = atoi(s);
-
-	if (plen > 32 || plen < 0)
-	{
-		return -1;
-	}
-	else
-	{
-		return plen;
-	}
-}
-
-/* is_number
- * Return 1 if the string s contains all numeric characters, otherwise return 
- * 0. No negative numbers.
- */
-int is_number(char * s)
-{
-	int i, first;
-
-	/* No negative numbers */
-	if (s[0] == '-')
-	{
-		return 0;
-	}
-
-	/* Are any chars in the string not a number? */
-	for (i = 0; s[i] != '\0'; i++)
-	{
-		if (! isdigit(s[i]))
-		{
-			return 0;
-		}
-	}
-
-	/* If the string length was greater than 0, this was a number */
-	return (i > 0);
+	return true;
 }
