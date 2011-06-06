@@ -10,7 +10,7 @@ Typically, route summarization is handled either manually or classfully. This li
 
 = Explained =
 
-The algorithm ACRS uses is very simple. It occurs in two steps: main summarization and overlap removal.
+The algorithm ACRS uses is very simple. There are two steps: main summarization and overlap removal.
 
 Main summarization operates on lists of routes consisting of, at least, a network address, a prefix length, and a metric. In the implementation here, it operates on routes of the AcrsRoute4 class. Before summarizing, ACRS sorts the list in the following manner:
 
@@ -27,7 +27,9 @@ Once the list is sorted, each route in the list is compared with the next route 
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route. For example, ACRS can summarize 192.168.16.0/25 and 192.168.16.128/25 into 192.168.16.0/24, but an administrator might know that it's safe to summarize these routes all the way down to 192.168.0.0/16. Since this information is not presented to ACRS, it has no way to account for such situations.
 
-Once main summarization is finished, overlap removal occurs to remove routes that specify identical address space. This is done by re-sorting the routes by:
+Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (Note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. It could also lead to unexpected routing in some networks, particularly if you get creative with manual summarization. This is discussed in Why use it?, below.)
+
+The first step is to re-sort the routes as follows:
 
   # Primary sort by network address in ascending order
   # Secondary sort by prefix length in ascending order
@@ -49,6 +51,8 @@ The address added to the route list is not assumed to be a network address, nece
 = Why use it? =
 
 Almost any network that is large enough to _need_ summarization already has someone that thought out its design well enough to provide a good set of summary routes; if not, not having automatically summarized routes is probably the least of the network's problems.
+
+Plus, changing the prefix length would influence routing decisions in ways that may not always be desirable. It seems that this will work best when no manual summarization is already being done. For example, overlap removal would be less-than-useful in situations where a router advertises a default route -- all other routes would be removed.
 
 I wrote this mainly as a curiosity that I might integrate into another for-fun project of mine to provide automatic route summarization: http://code.google.com/p/advrp/
 
