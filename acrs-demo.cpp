@@ -43,10 +43,6 @@
 
 int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
              char * rts[]);
-int check_network(char * netstr);
-int check_octet(char * octetp);
-int check_preflen(char * s);
-int is_number(char * s);
 void usage(void);
 
 int main(int argc, char * argv[])
