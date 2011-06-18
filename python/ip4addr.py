@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # IP version 4 address class
-# Copyright (C) 2011  Patrick Allen
+# Copyright (C) 2011  Patrick F. Allen
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
