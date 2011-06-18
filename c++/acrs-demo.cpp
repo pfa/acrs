@@ -1,10 +1,10 @@
 /* acrs-demo.cpp - demo of acrs as-is
  *
- * Copyright 2011 Patrick Allen
+ * Copyright 2011 Patrick F. Allen
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -47,91 +47,91 @@ void usage(void);
 
 int main(int argc, char * argv[])
 {
-	std::list<IP4Addr::Acrs::AcrsRoute4> rtlist;
-	int startind = 1;
-	bool logging = false;
+    std::list<IP4Addr::Acrs::AcrsRoute4> rtlist;
+    int startind = 1;
+    bool logging = false;
 
-	if (argc == 1)
-	{
-		usage();
-		return 1;
-	}
+    if (argc == 1)
+    {
+        usage();
+        return 1;
+    }
 
-	/* Check for log flag, must be first argument */
-	if (strlen(argv[1]) == 2)
-	{
-		if (argv[1][0] == '-' && argv[1][1] == 'l')
-		{
-			if (argc == 2)
-			{
-				usage();
-				return 1;
-			}
+    /* Check for log flag, must be first argument */
+    if (strlen(argv[1]) == 2)
+    {
+        if (argv[1][0] == '-' && argv[1][1] == 'l')
+        {
+            if (argc == 2)
+            {
+                usage();
+                return 1;
+            }
 
-			startind = 2;	
-			logging = true;
-		}
-	}
+            startind = 2;    
+            logging = true;
+        }
+    }
 
-	if (get_list(rtlist, argc - startind, &argv[startind]) == false)
-	{
-		std::cerr << "Bad list." << std::endl;
-		return 2;
-	}
+    if (get_list(rtlist, argc - startind, &argv[startind]) == false)
+    {
+        std::cerr << "Bad list." << std::endl;
+        return 2;
+    }
 
         Summarize(rtlist, logging, std::cout);
 
         for (std::list<IP4Addr::Acrs::AcrsRoute4>::iterator iter =
-	                                                        rtlist.begin();
+                                                            rtlist.begin();
              iter != rtlist.end();
              iter++)
         {
                 std::cout << *iter << std::endl;
         }
 
-	return 0;
+    return 0;
 }
 
 void usage(void)
 {
-	std::cerr << "Usage: acrs-demo [-l] <ROUTE> [ROUTE ROUTE ...]"
-	          << std::endl;
-	return;
+    std::cerr << "Usage: acrs-demo [-l] <ROUTE> [ROUTE ROUTE ...]"
+              << std::endl;
+    return;
 }
 
 int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
              char * rts[])
 {
-	for (int i = 0; i < numrts; i++)
-	{
-		char * ptr1, * ptr2;
-		char * saveptr = 0;
-		char ipstr[INET_ADDRSTRLEN];
-		char * prefix = rts[i];
+    for (int i = 0; i < numrts; i++)
+    {
+        char * ptr1, * ptr2;
+        char * saveptr = 0;
+        char ipstr[INET_ADDRSTRLEN];
+        char * prefix = rts[i];
 
-		/* Validation */
-		ptr1 = strtok_r(prefix, "/", &saveptr);
-		if (ptr1 == 0)
-		{
-			return false;
-		}
-		strncpy(ipstr, ptr1, sizeof(ipstr));
+        /* Validation */
+        ptr1 = strtok_r(prefix, "/", &saveptr);
+        if (ptr1 == 0)
+        {
+            return false;
+        }
+        strncpy(ipstr, ptr1, sizeof(ipstr));
 
-		ptr2 = strtok_r(NULL, "/", &saveptr);
-		if (ptr2 == 0)
-		{
-			return false;
-		}
-		
-		uint8_t preflen = atoi(ptr2);
-		int metric = 0;
-		IP4Addr::Acrs::AcrsRoute4 newrt(ipstr, preflen, metric);
-		if (newrt.isValid() == false)
-		{
-			return false;
-		}
-		rtlist.insert(rtlist.end(), newrt);
-	}
+        ptr2 = strtok_r(NULL, "/", &saveptr);
+        if (ptr2 == 0)
+        {
+            return false;
+        }
+        
+        uint8_t preflen = atoi(ptr2);
+        int metric = 0;
+        IP4Addr::Acrs::AcrsRoute4 newrt(ipstr, preflen, metric);
+        if (newrt.isValid() == false)
+        {
+            return false;
+        }
+        rtlist.insert(rtlist.end(), newrt);
+    }
 
-	return true;
+    return true;
 }
