@@ -105,7 +105,7 @@ For a Debian-based system:
 {{{
 sudo apt-get install subversion g++
 svn checkout http://acrs.googlecode.com/svn/trunk/ acrs-read-only
-cd acrs-read-only
+cd acrs-read-only/c++
 g++ -o acrs-demo acrs.cpp acrs-demo.cpp ip4addr.cpp
 ./acrs-demo
 }}}
