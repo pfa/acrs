@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+#
+# ACRS - Automated classless route summarization
+# Copyright (C) 2011  Patrick Allen
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+# USA.
 
 # XXX Summarization functions don't "back up" a route when a route is removed.
 # May mean we skip routes. Have to see.
@@ -8,8 +26,6 @@ class Acrs:
         rtlist = _summarize_main(rtlist)
         return _remove_overlap(rtlist)
 
-    # See here for sort info:
-    # http://icfun.blogspot.com/2009/08/python-customize-sorting-with.html
     def _compare_main(rt1, rt2):
             if (rt1.getMetric() < rt2.getMetric()):
                 return True
