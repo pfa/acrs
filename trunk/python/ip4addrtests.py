@@ -15,12 +15,29 @@ def assert_equals(res, good):
     else:
         return
 
+def check_version():
+    # Only tested on python 2.6. Print a helpful warning message if this
+    # system has a different version.
+    if (sys.hexversion < 0x02060000 or sys.hexversion >= 0x02070000):
+        sys.stderr.write("/*\n"
+                         " *   WARNING: This was written for python 2.6.\n"
+                         " *   Probably won't work with lower versions, and\n"
+                         " *   has not been tested with higher versions.\n"
+                         " */\n")
+
 def sanity():
     assert_equals(1, 1)
 
-    return
+    try:
+        assert_equals(1, 0)
+    except AssertionError:
+        # Expected
+        return
 
-def ip4addr_test_good_str_int24():
+    # Should not reach
+    raise AssertionError
+
+def ip4addr_test_goodstr_goodint24():
     addr = IP4Addr("192.168.1.1", 16777215)
 
     assert_equals(addr.isValid(), True)
@@ -31,9 +48,7 @@ def ip4addr_test_good_str_int24():
     assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
     assert_equals(addr.getPlen(), 24)
 
-    return
-
-def ip4addr_test_good_str_str24():
+def ip4addr_test_goodstr_goodstr24():
     addr = IP4Addr("192.168.1.1", "255.255.255.0")
 
     assert_equals(addr.isValid(), True)
@@ -44,20 +59,134 @@ def ip4addr_test_good_str_str24():
     assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
     assert_equals(addr.getPlen(), 24)
 
-    return
+def ip4addr_test_goodstr_goodplen24():
+    addr = IP4Addr("192.168.1.1", 24)
 
-if (__name__ == "__main__"):
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getMask(), ("255.255.255.0", 4294967040))
+    assert_equals(addr.getHostmask(), ("0.0.0.255", 255))
+    assert_equals(addr.getBroadcast(), ("192.168.1.255", 3232236031))
+    assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
+    assert_equals(addr.getPlen(), 24)
+
+def ip4addr_test_goodint_goodplen24():
+    addr = IP4Addr(16885952, 24)
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getMask(), ("255.255.255.0", 4294967040))
+    assert_equals(addr.getHostmask(), ("0.0.0.255", 255))
+    assert_equals(addr.getBroadcast(), ("192.168.1.255", 3232236031))
+    assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
+    assert_equals(addr.getPlen(), 24)
+
+def ip4addr_test_goodint_goodstr24():
+    addr = IP4Addr(16885952, "255.255.255.0")
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getMask(), ("255.255.255.0", 4294967040))
+    assert_equals(addr.getHostmask(), ("0.0.0.255", 255))
+    assert_equals(addr.getBroadcast(), ("192.168.1.255", 3232236031))
+    assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
+    assert_equals(addr.getPlen(), 24)
+
+def ip4addr_test_goodint_goodint24():
+    addr = IP4Addr(16885952, 16777215)
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getMask(), ("255.255.255.0", 4294967040))
+    assert_equals(addr.getHostmask(), ("0.0.0.255", 255))
+    assert_equals(addr.getBroadcast(), ("192.168.1.255", 3232236031))
+    assert_equals(addr.getNetwork(), ("192.168.1.0", 3232235776))
+    assert_equals(addr.getPlen(), 24)
+
+def ip4addr_test_badstr_goodplen24():
+    addr = IP4Addr("1", 24)
+    invalid_addr(addr)
+
+def ip4addr_test_goodstr_badmask():
+    addr = IP4Addr("1.1.1.1", 64)
+    invalid_addr(addr)
+
+def ip4addr_test_goodstr_goodplen_default():
+    addr = IP4Addr("0.0.0.0", 0)
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("0.0.0.0", 0))
+    assert_equals(addr.getMask(), ("0.0.0.0", 0))
+    assert_equals(addr.getHostmask(), ("255.255.255.255", 4294967295))
+    assert_equals(addr.getBroadcast(), ("255.255.255.255", 4294967295))
+    assert_equals(addr.getNetwork(), ("0.0.0.0", 0))
+    assert_equals(addr.getPlen(), 0)
+
+def ip4addr_test_goodstr_goodplen_hostroute():
+    addr = IP4Addr("192.168.1.1", 32)
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getMask(), ("255.255.255.255", 4294967295))
+    assert_equals(addr.getHostmask(), ("0.0.0.0", 0))
+    assert_equals(addr.getBroadcast(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getNetwork(), ("192.168.1.1", 3232235777))
+    assert_equals(addr.getPlen(), 32)
+
+def ip4addr_test_goodstr_badplen_negative():
+    addr = IP4Addr("192.168.1.1", -1)
+    invalid_addr(addr)
+
+def ip4addr_test_goodstr_badplen_toohigh():
+    addr = IP4Addr("192.168.1.1", 33)
+    invalid_addr(addr)
+
+def ip4addr_test_goodstr_badsnmask_toohigh():
+    addr = IP4Addr("192.168.1.1", 4294967293)
+    invalid_addr(addr)
+
+def ip4addr_test_goodstr_goodplen30():
+    addr = IP4Addr("10.0.4.2", 30)
+
+    assert_equals(addr.isValid(), True)
+    assert_equals(addr.getAddr(), ("10.0.4.2", 167773186))
+    assert_equals(addr.getMask(), ("255.255.255.252", 4294967292))
+    assert_equals(addr.getHostmask(), ("0.0.0.3", 3))
+    assert_equals(addr.getBroadcast(), ("10.0.4.3", 167773187))
+    assert_equals(addr.getNetwork(), ("10.0.4.0", 167773184))
+    assert_equals(addr.getPlen(), 30)
+
+def ip4addr_test_goodstr_badmask_nbo8():
+    addr = IP4Addr("10.0.4.2", 4278190080)
+    invalid_addr(addr)
+
+def invalid_addr(addr):
+    if (addr.__class__.__name__ != "IP4Addr"):
+        raise TypeError
+
+    assert_equals(addr.isValid(), False)
+    assert_equals(addr.getAddr(), (None, None))
+    assert_equals(addr.getMask(), (None, None))
+    assert_equals(addr.getHostmask(), (None, None))
+    assert_equals(addr.getBroadcast(), (None, None))
+    assert_equals(addr.getNetwork(), (None, None))
+    assert_equals(addr.getPlen(), None)
+
+def main():
+    check_version()
+
+    print "Beginning unit tests for IP4Addr class."
     try:
         print "Running sanity check...",
         sanity()
-        print "Passed"
+        print "OK"
 
         # Find all methods starting with "ip4addr_test" and run them.
         for test in dir(sys.modules[__name__]):
             if (test.startswith("ip4addr_test")):
                 sys.stdout.write("Running " + test + "... ")
                 getattr(sys.modules[__name__], test)()
-                sys.stdout.write("OK\n")
+                print "OK"
     except AssertionError as e:
         print "Failed"
         for arg in e.args:
@@ -66,3 +195,6 @@ if (__name__ == "__main__"):
         raise
 
     print "All tests succeeded."
+
+if (__name__ == "__main__"):
+    main()
