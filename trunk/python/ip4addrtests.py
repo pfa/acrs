@@ -3,6 +3,7 @@
 # To add a new test, write a function beginning with "ip4addr_test".
 
 from ip4addr import IP4Addr
+from ip4route import IP4Route
 import sys
 
 def assert_equals(res, good):
@@ -172,15 +173,50 @@ def invalid_addr(addr):
     assert_equals(addr.getNetwork(), (None, None))
     assert_equals(addr.getPlen(), None)
 
+def ip4route_test_goodstr_goodplen_goodmetric():
+    rt = IP4Route("192.168.1.1", 24, 0)
+
+    assert_equals(rt.isValid(), True)
+    assert_equals(rt.getMetric(), 0)
+    assert_equals(rt.getAddr(), ("192.168.1.1", 3232235777))
+    assert_equals(rt.getMask(), ("255.255.255.0", 4294967040))
+    assert_equals(rt.getHostmask(), ("0.0.0.255", 255))
+    assert_equals(rt.getBroadcast(), ("192.168.1.255", 3232236031))
+    assert_equals(rt.getNetwork(), ("192.168.1.0", 3232235776))
+    assert_equals(rt.getPlen(), 24)
+
+def ip4route_test_goodstr_goodplen_badmetric_toohigh():
+    rt = IP4Route("192.168.1.1", 24, 65536)
+
+    assert_equals(rt.isValid(), False)
+    assert_equals(rt.getMetric(), None)
+ 
+def ip4route_test_goodstr_goodplen_badmetric_negative():
+    rt = IP4Route("192.168.1.1", 24, -1)
+
+    assert_equals(rt.isValid(), False)
+    assert_equals(rt.getMetric(), None)
+
+def ip4route_test_goodstr_badplen_goodmetric():
+    rt = IP4Route("192.168.1.1", -1, 0)
+
+    assert_equals(rt.isValid(), False)
+    assert_equals(rt.getMetric(), None)
+
 def main():
     check_version()
 
-    print "Beginning unit tests for IP4Addr class."
-    try:
-        print "Running sanity check...",
-        sanity()
-        print "OK"
+    print "Running sanity check...",
+    sanity()
+    print "OK"
 
+    run_ip4addr_tests()
+    run_ip4route_tests()
+    print "* All tests succeeded."
+
+def run_ip4addr_tests():
+    print "* Beginning unit tests for IP4Addr class."
+    try:
         # Find all methods starting with "ip4addr_test" and run them.
         for test in dir(sys.modules[__name__]):
             if (test.startswith("ip4addr_test")):
@@ -194,7 +230,25 @@ def main():
         e.args = ""
         raise
 
-    print "All tests succeeded."
+    print "* All IP4Addr tests succeeded."
+
+def run_ip4route_tests():
+    print "* Beginning unit tests for IP4Route class."
+    try:
+        # Find all methods starting with "ip4route_test" and run them.
+        for test in dir(sys.modules[__name__]):
+            if (test.startswith("ip4route_test")):
+                sys.stdout.write("Running " + test + "... ")
+                getattr(sys.modules[__name__], test)()
+                print "OK"
+    except AssertionError as e:
+        print "Failed"
+        for arg in e.args:
+            print arg,
+        e.args = ""
+        raise
+
+    print "* All IP4Route tests succeeded."
 
 if (__name__ == "__main__"):
     main()
