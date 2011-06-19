@@ -121,6 +121,9 @@ class IP4Addr:
 
     def setMask(self, mask):
         if (isinstance(mask, int) or isinstance(mask, long)):
+            if (mask < 0):
+                return self._setMaskFail()
+
             if ((IP4Addr.isValidPlen(mask)) == True):
                 self._plen = mask
                 mask_hostorder = IP4Addr.pltosm(self._plen)
@@ -128,9 +131,13 @@ class IP4Addr:
                 self._mask_i = htonl(mask_hostorder)
                 return self._setMaskSuccess()
             else:
+                # It's not a prefix length, try using as a subnet mask
                 try:
                     self._mask_s = inet_ntop(AF_INET, pack("L", mask))
-                    self._mask_i = htonl(mask)
+                    self._mask_i = htonl(mask & 0xFFFFFFFF)
+                    if (IP4Addr.isValidMask(self._mask_i) == False):
+                        return self._setMaskFail()
+
                     self._plen = IP4Addr.smtopl(self._mask_i)
                     return self._setMaskSuccess()
                 except error:
@@ -140,14 +147,16 @@ class IP4Addr:
                 maskbytes = inet_pton(AF_INET, mask)
                 self._mask_i = IP4Addr.add_octets(maskbytes)
                 self._mask_s = mask
-                self._plen = IP4Addr.smtopl(mask)
+                self._plen = IP4Addr.smtopl(self._mask_i)
+                return self._setMaskSuccess()
             except error:
                 return self._setMaskFail()
         else:
             # Bad type, should throw an exception
             return self._setMaskFail()
 
-        return self._setMaskSuccess()
+        # Not reached in setMask()
+        assert(False)
 
     # Subnet mask to prefix length
     @staticmethod
@@ -186,11 +195,10 @@ class IP4Addr:
         if (not IP4Addr.isValidPlen(plen)):
             return None
 
+        assert(plen <= 32 and plen >= 0)
+
         if (plen == 0):
             return 0
-
-        if (plen > 32):
-            plen = 32
 
         highbit = 1 << 31    # Highest bit flipped on
 
@@ -203,15 +211,22 @@ class IP4Addr:
         # 5.  Mask is in network byte order, convert to host order
         return ntohl(~((highbit >> plen - 1) - 1) & 0xFFFFFFFF)
 
+    @staticmethod
     def isValidMask(mask):
-        if (not isinstance(mask, int)):
+        if (isinstance(mask, int)):
+            mask = long(mask)
+
+        if (not isinstance(mask, long)):
+            return False
+
+        if (mask < 0 or mask > inet_pton(AF_INET, "255.255.255.255")):
             return False
 
         bits = [ 128, 64, 32, 16, 8, 4, 2, 1 ]
         hostbits = False
 
         # For every octet, check if mask is ok
-        for maskbyte in bytearray(mask):
+        for maskbyte in [ ord(x) for x in pack(">I", mask) ]:
             for bit in bits:
                 if (hostbits == False):
                     if (maskbyte & bit):
@@ -280,9 +295,14 @@ class IP4Addr:
         return self._addr_valid and self._mask_valid
 
     def printAll(self):
-        print "Mask:", addr.getMask()
-        print "Addr:", addr.getAddr()
-        print "Bcast:", addr.getBroadcast()
-        print "Hmask:", addr.getHostmask()
-        print "Net:", addr.getNetwork()
-        print "Plen:", addr.getPlen()
+        ret = self.isValid()
+
+        print "Valid:", self.isValid()
+
+        if (ret == True):
+	        print "Addr:", self.getAddr()
+	        print "Mask:", self.getMask()
+	        print "Bcast:", self.getBroadcast()
+	        print "Hmask:", self.getHostmask()
+	        print "Net:", self.getNetwork()
+	        print "Plen:", self.getPlen()
