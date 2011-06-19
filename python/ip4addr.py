@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # IP version 4 address class
 # Copyright (C) 2011  Patrick F. Allen
 # 
@@ -39,7 +37,7 @@
 from _struct import pack
 from socket import ntohl, htonl, inet_ntop, inet_pton, AF_INET, error
 
-class IP4Addr:
+class IP4Addr(object):
     def getAddr(self):
         if (self.isValid() == False):
             return None, None
