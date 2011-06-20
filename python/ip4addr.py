@@ -89,6 +89,16 @@ class IP4Addr(object):
 
         return self._plen
 
+    def setPlen(self, plen):
+        if (not IP4Addr.isValidPlen(plen)):
+            return self._setMaskFail()
+
+        self._plen = plen 
+        mask_hostorder = htonl(IP4Addr.pltosm(self._plen))
+        self._mask_s = inet_ntop(AF_INET, pack("L", mask_hostorder))
+        self._mask_i = htonl(mask_hostorder)
+        return self._setMaskSuccess()
+
     @staticmethod
     def add_octets(addrstr):
         addrbytes = bytearray(addrstr)
@@ -123,11 +133,7 @@ class IP4Addr(object):
                 return self._setMaskFail()
 
             if ((IP4Addr.isValidPlen(mask)) == True):
-                self._plen = mask
-                mask_hostorder = IP4Addr.pltosm(self._plen)
-                self._mask_s = inet_ntop(AF_INET, pack("L", mask_hostorder))
-                self._mask_i = htonl(mask_hostorder)
-                return self._setMaskSuccess()
+                return self.setPlen(mask)
             else:
                 # It's not a prefix length, try using as a subnet mask
                 try:
@@ -187,7 +193,7 @@ class IP4Addr(object):
 
         return plen
 
-    # Prefix length to subnet mask in host order
+    # Prefix length to subnet mask in network order
     @staticmethod
     def pltosm(plen):
         if (not IP4Addr.isValidPlen(plen)):
@@ -206,8 +212,7 @@ class IP4Addr(object):
         # 4.  Get the one's complement of mask
         # 4a. AND with 0xFFFFFFFF to counter python's type system
         #     (will appear as a negative number otherwise)
-        # 5.  Mask is in network byte order, convert to host order
-        return ntohl(~((highbit >> plen - 1) - 1) & 0xFFFFFFFF)
+        return (~((highbit >> plen - 1) - 1) & 0xFFFFFFFF)
 
     @staticmethod
     def isValidMask(mask):
@@ -292,15 +297,20 @@ class IP4Addr(object):
     def isValid(self):
         return self._addr_valid and self._mask_valid
 
+    def __str__(self):
+        if (self.isValid() == False):
+            return "Address not valid."
+        return ("%s/%d" % (self.getNetwork()[0], self.getPlen()))
+
     def printAll(self):
         ret = self.isValid()
 
         print "Valid:", self.isValid()
 
         if (ret == True):
-	        print "Addr:", self.getAddr()
-	        print "Mask:", self.getMask()
-	        print "Bcast:", self.getBroadcast()
-	        print "Hmask:", self.getHostmask()
-	        print "Net:", self.getNetwork()
-	        print "Plen:", self.getPlen()
+            print "Addr:", self.getAddr()
+            print "Mask:", self.getMask()
+            print "Bcast:", self.getBroadcast()
+            print "Hmask:", self.getHostmask()
+            print "Net:", self.getNetwork()
+            print "Plen:", self.getPlen()

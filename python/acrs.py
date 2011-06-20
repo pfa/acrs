@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # ACRS - Automated classless route summarization
 # Copyright (C) 2011  Patrick F. Allen
 # 
@@ -21,108 +19,176 @@
 # XXX Summarization functions don't "back up" a route when a route is removed.
 # May mean we skip routes. Have to see.
 
-class Acrs:
-    def summarize(rtlist):
-        rtlist = _summarize_main(rtlist)
-        return _remove_overlap(rtlist)
+from ip4route import IP4Route
+from ip4addr import IP4Addr
 
+class Acrs:
+    @staticmethod
+    def summarize(rtlist):
+        if (rtlist.__class__.__name__ != "list"):
+            raise TypeError
+
+        i = 0
+        for rt in rtlist:
+            if (rt.__class__.__name__ != "IP4Route"):
+                raise TypeError
+            if (rt.isValid() == False):
+                # Return index of invalid route as an argument
+                raise invalidRoute(i)
+            i += 1
+
+        rtlist, summarized = Acrs._summarize_main(rtlist)
+        return Acrs._remove_overlap(rtlist)
+
+    @staticmethod
     def _compare_main(rt1, rt2):
             if (rt1.getMetric() < rt2.getMetric()):
-                return True
+                return -1
             elif (rt1.getMetric() > rt2.getMetric()):
-                return False
+                return 1
 
             # If reached, metrics are the same
 
             if (rt1.getPlen() > rt2.getPlen()):
-                return True
+                return -1
             elif (rt1.getPlen() < rt2.getPlen()):
-                return False
+                return 1
 
             # If reached, prefix lengths are the same
 
-            if (rt1.getNetwork() < rt2.getNetwork()):
-                return True
-            elif (rt1.getNetwork > rt2.getNetwork()):
-                return False
+            if (rt1.getNetwork()[1] < rt2.getNetwork()[1]):
+                return -1
+            elif (rt1.getNetwork()[1] > rt2.getNetwork()[1]):
+                return 1
 
+            # Networks were the same.
+            # XXX So, delete one? If that doesn't screw up the sort routine,
+            # this would take care of overlap removal
+            return 0
+ 
+    @staticmethod
+    def _cmp_main(rt1, rt2):
+        # Deal with blank values
+        if (rt1.__class__.__name__ == "NoneType"):
+            if (rt2.__class__.__name__ == "NoneType"):
+                return 0
+            else:
+                return -1
+        else:
+            if (rt2.__class__.__name__ == "NoneType"):
+                return -1
+
+        if (rt1.__class__.__name__ != "IP4Route" or
+            rt2.__class__.__name__ != "IP4Route"):
+            raise TypeError
+
+        c1 = cmp(rt1.getMetric(), rt2.getMetric())
+
+        # Reverse sort using * -1 to get prefix length in descending order
+        c2 = cmp(rt1.getPlen(), rt2.getPlen()) * -1
+        c3 = cmp(rt1.getNetwork()[1], rt2.getNetwork()[1])
+
+        # Python's OR logic will return the first non-zero value,
+        # or the value of c3
+        return c1 or c2 or c3
+
+    @staticmethod
     def _summarize_main(rtlist):
         summarized = False
+        low = None
 
-        rtlist.sort(_compare_main)
+        rtlist = sorted(rtlist, cmp=Acrs._cmp_main)
 
         for high in rtlist:
-            if (not low):
+            if (low == None):
+                low = high
                 continue
 
             # Prefix lengths must match
             if (low.getPlen() != high.getPlen()):
+                low = high
                 continue
 
             # Metrics must match
             if (low.getMetric() != high.getMetric()):
+                low = high
                 continue
 
             # Lower route's broadcast + 1 must equal higher's network address
-            if (low.getBroadcast() + 1 != high.getNetwork()):
+            if (low.getBroadcast()[1] + 1 != high.getNetwork()[1]):
+                low = high
                 continue
 
             # Net address of the resulting network must be equal to the net
             # address of the lower network
-            if (low.getNetwork() & acrs.smtopl(low.getPlen()) !=
-                low.getNetwork()):
+            if (low.getNetwork()[1] & IP4Addr.pltosm(low.getPlen() - 1) !=
+                                   low.getNetwork()[1]):
+                low = high
                 continue
 
             # Routes can be summarized
             rtlist.remove(high)
             low.setPlen(low.getPlen() - 1)
 
-            summarized = true
             low = high
+            summarized = True
 
         # If we summarized at all on this iteration, go over the list again.
         if (summarized == True):
-            _summarize_main(rtlist)
-            return True
+            rtlist = Acrs._summarize_main(rtlist)[0]
+            return rtlist, True
         else:
-            return False
+            return rtlist, False
 
-    def _compare_overlap(rtlist):
-        if (rt1.getNetwork() < rt2.getNetwork()):
-            return True
-        elif (rt1.getNetwork() > rt2.getNetwork()):
-            return False
-
-        # If reached, network addresses are the same
-
-        if (rt1.getPlen() < rt2.getPlen()):
-            return True
-        elif (rt1.getPlen() > rt2.getPlen()):
-            return False
-
-        # If reached, prefix lengths are the same
-
-        if (rt1.getMetric() < rt2.getMetric()):
-            return True
+    @staticmethod
+    def _cmp_overlap(rt1, rt2):
+        # Deal with blank values
+        if (rt1.__class__.__name__ == "NoneType"):
+            if (rt2.__class__.__name__ == "NoneType"):
+                return 0
+            else:
+                return -1
         else:
-            return False
+            if (rt2.__class__.__name__ == "NoneType"):
+                return -1
+    
+        if (rt1.__class__.__name__ != "IP4Route" or
+            rt2.__class__.__name__ != "IP4Route"):
+            raise TypeError
 
+        c1 = cmp(rt1.getNetwork()[1], rt2.getNetwork()[1])
+        c2 = cmp(rt1.getPlen(), rt2.getPlen())
+        c3 = cmp(rt1.getMetric(), rt2.getMetric())
+
+        return -1
+
+        # Python's OR logic will return the first non-zero value,
+        # or the value of c3
+        return c1 or c2 or c3
+
+    @staticmethod
     def _remove_overlap(rtlist):
         summarized = False
+        low = None
 
-        rtlist.sort(_compare_overlap)
+        rtlist = sorted(rtlist, cmp=Acrs._cmp_overlap)
 
         for high in rtlist:
-            if (not low):
+            if (low == None):
+                low = high
                 continue
 
-            if ((high.getNetwork() & low.getSnmask()) == low.getNetwork()):
+            if ((high.getNetwork()[1] & low.getMask()[1]) ==
+                 low.getNetwork()[1]):
                 # Only summarize if the summary route would have an equal or
                 # better metric compared to the current route's
                 if (high.getMetric() < low.getMetric()):
+                    low = high
                     continue
 
                 rtlist.remove(high)
                 summarized = True
 
-        return summarized
+            low = high
+
+        return rtlist, summarized

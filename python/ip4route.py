@@ -59,6 +59,13 @@ class IP4Route(IP4Addr):
         self._metric_valid = True
         return True
 
+    def __str__(self):
+        if (self.isValid() == False):
+            return "Route not valid."
+
+        return (super(self.__class__, self).__str__() + " in %s" %
+                self.getMetric())
+
     def printAll(self):
         if (self.isValid() == False):
             print "Valid: False"
