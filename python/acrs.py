@@ -160,8 +160,6 @@ class Acrs:
         c2 = cmp(rt1.getPlen(), rt2.getPlen())
         c3 = cmp(rt1.getMetric(), rt2.getMetric())
 
-        return -1
-
         # Python's OR logic will return the first non-zero value,
         # or the value of c3
         return c1 or c2 or c3
