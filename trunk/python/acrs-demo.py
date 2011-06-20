@@ -3,7 +3,7 @@
 
 from sys import argv
 from ip4route import IP4Route
-from acrs import Acrs
+from acrs import summarize
 
 def main(argv):
     rtlist = []
@@ -31,7 +31,7 @@ def main(argv):
         print "One or more valid routes required."
         return 0
 
-    rtlist, summarized = Acrs.summarize(rtlist)
+    rtlist, summarized = summarize(rtlist)
 
     for rt in rtlist:
         assert(rt.isValid() == True)
