@@ -190,6 +190,28 @@ def ip4route_test_goodstr_goodplen_badmetric_toohigh():
 
     assert_equals(rt.isValid(), False)
     assert_equals(rt.getMetric(), None)
+
+def ip4route_test_set_plen_good():
+    rt = IP4Route("192.168.1.1", 24)
+
+    assert_equals(rt.isValid(), True)
+    rt.setPlen(23)
+    assert_equals(rt.getPlen(), 23)
+
+def ip4route_test_set_metric_good():
+    rt = IP4Route("192.168.1.1", 24, 1)
+
+    assert_equals(rt.isValid(), True)
+    rt.setMetric(2)
+    assert_equals(rt.getMetric(), 2)
+
+def ip4route_test_goodstr_goodplen_impliedmetric():
+    rt = IP4Route("192.168.1.1", 24)
+
+    assert_equals(rt.isValid(), True)
+    assert_equals(rt.getMetric(), 0)
+    assert_equals(rt.getAddr()[0], "192.168.1.1")
+    assert_equals(rt.getPlen(), 24)
  
 def ip4route_test_goodstr_goodplen_badmetric_negative():
     rt = IP4Route("192.168.1.1", 24, -1)
