@@ -29,7 +29,7 @@ def main(argv):
 
     if (rtlist == []):
         print "One or more valid routes required."
-        return 0
+        return 1
 
     rtlist, summarized = summarize(rtlist)
 

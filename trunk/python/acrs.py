@@ -16,9 +16,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 
-# XXX Summarization functions don't "back up" a route when a route is removed.
-# May mean we skip routes. Have to see.
-
 from ip4route import IP4Route
 from ip4addr import IP4Addr
 
@@ -58,9 +55,6 @@ def _compare_main(rt1, rt2):
         elif (rt1.getNetwork()[1] > rt2.getNetwork()[1]):
             return 1
 
-        # Networks were the same.
-        # XXX So, delete one? If that doesn't screw up the sort routine,
-        # this would take care of overlap removal
         return 0
  
 def _cmp_main(rt1, rt2):
@@ -165,14 +159,19 @@ def _remove_overlap(rtlist):
 
     rtlist = sorted(rtlist, cmp=_cmp_overlap)
 
+    newrts.append(rtlist[0])
+
     for high in rtlist:
         if (low == None):
             low = high
             continue
 
         if (_overlapping(low, high) == True):
-            summarized = True
-            newrts.append(low)
+            low = high
+            continue
+
+        summarized = True
+        newrts.append(high)
 
         low = high
 
@@ -187,4 +186,3 @@ def _overlapping(low, high):
             return True
 
     return False
-
