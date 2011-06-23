@@ -1,4 +1,4 @@
-#summary Automatic classless route summarization
+#summary General information on ACRS
 
 <wiki:toc max_depth="1" />
 
