@@ -29,7 +29,7 @@ def summarize(rtlist):
             raise TypeError
         if (rt.isValid() == False):
             # Return index of invalid route as an argument
-            raise invalidRoute(i)
+            raise ValueError(i)
         i += 1
 
     rtlist, summarized = _summarize_main(rtlist)
