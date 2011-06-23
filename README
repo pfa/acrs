@@ -1,0 +1,3 @@
+ACRS is a simple algorithm that summarizes lists of IPv4 or IPv6 routes or prefixes, classlessly. Source code is provided for an IPv4 implementation in both C++ and Python, along with a demo program that uses the library.
+
+See acrs.googlecode.com for more information, and feel free to mail me at pallenpost (at) gmail (dot) com.
