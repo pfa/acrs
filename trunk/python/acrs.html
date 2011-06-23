@@ -1,0 +1,23 @@
+<html><body>
+<h1>Automatic classless route summarization (ACRS) web demo</h1>
+<p>
+    ACRS is an open source library that can be used to summarize lists of IPv4 prefixes or routes classlessly. This page hosts a demonstration program that uses the ACRS library.<br/><br/>
+    Instructions:<br/>
+    <ul>
+        1. In the box below, enter a list of IPv4 prefixes in CIDR notation, separated by spaces or newlines (e.g. 192.168.1.0/25 192.168.1.128/25)<br/>
+        2. Click the Summarize button<br/>
+    </ul>
+    See <a href="http://acrs.googlecode.com">acrs.googlecode.com</a> for more information, including source code for the ACRS library in python and C++ and a command line version of this demo.
+    <br/>
+    <br/>
+</p>
+
+<form action="/cgi-bin/acrs-web-demo.py" method="post">
+    <p>
+        <textarea name="summary-input" rows="0" cols="100">192.168.1.0/25 192.168.1.128/25</textarea>
+    </p>
+    <input type="submit" value="Summarize">
+</form>
+<br/>
+<br/>
+</body></html>
