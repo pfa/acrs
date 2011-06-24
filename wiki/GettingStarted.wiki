@@ -86,14 +86,14 @@ At this point, you can use the precompiled acrs-demo program. If you want to com
 
 {{{
 sudo apt-get install g++
-cd acrs_demo
+cd acrs/c++
 g++ -o acrs-demo *.cpp
 ./acrs-demo
 }}}
 
 == From subversion ==
 
-The general process:
+Steps:
   # Install subversion
   # Install a C++ compiler
   # Download the code from googlecode using subversion
