@@ -73,12 +73,12 @@ Steps:
   # Extract the source code
   # Either use the precompiled acrs-demo binary (in which case you're done), or install a C++ compiler and build from source
 
-For a Debian-based system:
+For Linux systems:
 
 {{{
-wget http://acrs.googlecode.com/files/acrs-demo_0.1.tar.gz   # Replace version number if necessary
-tar -xzf acrs-demo_0.1.tar.gz
-cd acrs_demo
+wget http://acrs.googlecode.com/files/acrs-r56.tar.gz   # Replace version number if necessary
+tar -xzf acrs-r56.tar.gz
+cd acrs/c++
 ./acrs-demo
 }}}
 
