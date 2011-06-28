@@ -24,10 +24,15 @@ This assumes Apache is already functional, but perhaps does not have CGI enabled
     </Directory>
 }}}
 
-  * Extract the acrs source code and place the acrs.html page in the web server's document root directory (I'm no web designer, feel free to use your own page instead):
+  * Extract the acrs source code:
 
 {{{
-tar -xzf acrs-r54.tar.gz
+tar -xzf acrs-r56.tar.gz
+}}}
+
+  * Place the acrs.html page in the web server's document root directory (I'm no web designer, feel free to use your own page instead):
+
+{{{
 cp acrs/python/acrs.html /var/www/
 }}}
 
@@ -43,28 +48,28 @@ chmod o+r /var/www/acrs.html
 cp acrs/python/acrs-web-demo.py /usr/lib/cgi-bin/
 }}}
 
-  * Make sure the cgi script is readable and executable by 'other' and not writable by anyone:
+  * Change permissions on the cgi script so that it is readable and executable by 'other' and not writable by anyone:
 
 {{{
 chmod o+rx,a-w /usr/lib/cgi-bin/acrs-web-demo.py
 }}}
 
   * The cgi script needs to be able to use the supporting acrs libraries. This means the libraries need to be copied into the python module search path. Ideally there would be an install script that does this for you, but there is currently no such script. So, you have two options:
-    * Easy way: place libraries in the same directory as acrs-web-demo.py. The 'current directory' is always in the python search path.
-    * Other way: place libraries in a proper search path, such as /usr/lib/python2.6 on most systems. To find all python search path directories on your system, use:
+    * Easy way: place libraries in the same directory as acrs-web-demo.py. The 'current directory' is always in the python search path. For simplicity, I'm assuming you're going to do this.
+    * Other way: place libraries in a proper search path, such as /usr/lib/python2.6 on most systems. If you want to do it this way, you can check the python search path directories using the following command. You can use this directory instead of /usr/lib/cgi-bin/ through the rest of the how to:
 
 {{{
 python -c "import sys ; print sys.path"
 }}}
 
-  * For simplicity, I'm going to assume everything is being placed in the cgi-bin directory. So, do the following:
+  * I'm going to assume everything is being placed in the cgi-bin directory. So, do the following:
 
 {{{
 cd acrs/python
 cp acrs.py ip4route.py ip4addr.py /usr/lib/cgi-bin/
 }}}
 
-  * Lastly, it would be nice to compile the libraries into bytecode now. The python interpreter won't have permission to write to the cgi-bin directory when it's being ran by the web server, so it would normally have to re-generate bytecode for the libraries every time it is ran. Run the script once as root to produce bytecode (or copy in the `*`.pyc files that are generated when you run the script as an unprivileged user). All you need to do is execute the acrs-web-demo.py script, no arguments are necessary:
+  * Lastly, it would be nice to compile the libraries into bytecode now. The python interpreter won't have permission to write to the cgi-bin directory when it's being ran by the web server, so it would normally have to re-generate bytecode for the libraries every time it is ran. That takes (small amounts of) time. Run the script once as root to produce bytecode (or copy in the `*`.pyc files that are generated when you run the script as an unprivileged user). All you need to do is execute the acrs-web-demo.py script, no arguments are necessary:
 
 {{{
 ./acrs-web-demo.py
@@ -72,7 +77,7 @@ cp acrs.py ip4route.py ip4addr.py /usr/lib/cgi-bin/
 
 If you ran the script as a user having permissions to write to the cgi-bin directory, you should now see three .pyc files in the directory: acrs.pyc, ip4addr.pyc, and ip4route.pyc. This will speed subsequent runs up.
 
-At this point, you should be able to load the page and use the demo program.
+At this point, you should be able to load the page by connecting to http://localhost/acrs.html and use the demo program.
 
 = Other notes =
 
