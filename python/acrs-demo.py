@@ -1,9 +1,17 @@
 #!/usr/bin/env python
-# Demo of ACRS
+# Demo of ACRS. Usage:
+#    ./acrs-demo.py <LIST OF ROUTES>
+# List of routes should be a space separated list of IPv4 routes in CIDR
+# notation. For example:
+#
+#    ./acrs-demo.py 192.168.0.0/24 192.168.1.0/24
+#
+# The output for the above input would be 192.168.0.0/23.
+# See the wiki on acrs.googlecode.com for more information.
 
-from sys import argv
-from ip4route import IP4Route
-from acrs import summarize
+import sys
+import ip4route
+import acrs
 
 def main(argv):
     rtlist = []
@@ -20,7 +28,7 @@ def main(argv):
             print "Error, use CIDR notation (e.g. 1.1.1.1/24):", rtstr
             return 1
 
-        rt = IP4Route(addr, mask)
+        rt = ip4route.IP4Route(addr, mask)
         if (rt.isValid() == False):
             print "Error, invalid route:", rtstr
             return 1
@@ -31,7 +39,7 @@ def main(argv):
         print "One or more valid routes required."
         return 1
 
-    rtlist, summarized = summarize(rtlist)
+    rtlist, summarized = acrs.summarize(rtlist)
 
     for rt in rtlist:
         assert(rt.isValid() == True)
@@ -40,4 +48,4 @@ def main(argv):
     return 0
 
 if (__name__ == "__main__"):
-    main(argv[1::])
+    main(sys.argv[1::])

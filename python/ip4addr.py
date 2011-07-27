@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 
-# This uses inet_pton, ntohl, etc, which may or may not be available in
+# This uses socket.inet_pton, socket.ntohl, etc, which may or may not be available in
 # Windows cpython.
 #
 # Addresses and mask are set either using a string in dotted decimal format,
@@ -34,15 +34,13 @@
 # programming. If you want to use values from one IP4Addr to make a new
 # IP4Addr, use the string item in the tuple.)
 
-from _struct import pack
-from socket import ntohl, htonl, inet_ntop, inet_pton, AF_INET, error
+import struct
+import socket
 
 class IP4Addr(object):
     def getAddr(self):
         if (self.isValid() == False):
             return None, None
-
-        #hboaddr = ntohl(self._addr_i)
 
         return self._addr_s, self._addr_i
 
@@ -57,8 +55,8 @@ class IP4Addr(object):
             return None, None
 
         bc_i = self._addr_i | self.getHostmask()[1]
-        bc_s = ntohl(bc_i)
-        bc_s = inet_ntop(AF_INET, pack("L", bc_s))
+        bc_s = socket.ntohl(bc_i)
+        bc_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", bc_s)[0:4])
 
         return bc_s, bc_i
 
@@ -68,8 +66,8 @@ class IP4Addr(object):
 
         # AND with 0xFFFFFFFF in case of different length integers
         hmask_i = ~ self.getMask()[1] & 0xFFFFFFFF
-        hmask_s = ntohl(hmask_i)
-        hmask_s = inet_ntop(AF_INET, pack("L", hmask_s))
+        hmask_s = socket.ntohl(hmask_i)
+        hmask_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", hmask_s)[0:4])
 
         return hmask_s, hmask_i
 
@@ -78,8 +76,8 @@ class IP4Addr(object):
             return None, None
 
         net_i = self._mask_i & self._addr_i
-        net_s = ntohl(net_i)
-        net_s = inet_ntop(AF_INET, pack("L", net_s))
+        net_s = socket.ntohl(net_i)
+        net_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", net_s)[0:4])
 
         return net_s, net_i
 
@@ -94,9 +92,9 @@ class IP4Addr(object):
             return self._setMaskFail()
 
         self._plen = plen 
-        mask_hostorder = htonl(IP4Addr.pltosm(self._plen))
-        self._mask_s = inet_ntop(AF_INET, pack("L", mask_hostorder))
-        self._mask_i = htonl(mask_hostorder)
+        mask_hostorder = socket.htonl(IP4Addr.pltosm(self._plen))
+        self._mask_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", mask_hostorder)[0:4])
+        self._mask_i = socket.htonl(mask_hostorder)
         return self._setMaskSuccess()
 
     @staticmethod
@@ -108,7 +106,7 @@ class IP4Addr(object):
                (addrbytes[3])
 
     # Mask may be either a subnet mask (in dotted decimal form as a string,
-    # or a packed 32 bit address), or a prefix length.
+    # or a struct.packed 32 bit address)[0:4], or a prefix length.
     #
     # We'll determine if it's a mask or prefix length by attempting to use
     # it as a subnet mask first; if that fails, we'll try using it as a
@@ -137,23 +135,23 @@ class IP4Addr(object):
             else:
                 # It's not a prefix length, try using as a subnet mask
                 try:
-                    self._mask_s = inet_ntop(AF_INET, pack("L", mask))
-                    self._mask_i = htonl(mask & 0xFFFFFFFF)
+                    self._mask_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", mask)[0:4])
+                    self._mask_i = socket.htonl(mask & 0xFFFFFFFF)
                     if (IP4Addr.isValidMask(self._mask_i) == False):
                         return self._setMaskFail()
 
                     self._plen = IP4Addr.smtopl(self._mask_i)
                     return self._setMaskSuccess()
-                except error:
+                except socket.error:
                     return self._setMaskFail()
         elif (isinstance(mask, str)):
             try:
-                maskbytes = inet_pton(AF_INET, mask)
+                maskbytes = socket.inet_pton(socket.AF_INET, mask)
                 self._mask_i = IP4Addr.add_octets(maskbytes)
                 self._mask_s = mask
                 self._plen = IP4Addr.smtopl(self._mask_i)
                 return self._setMaskSuccess()
-            except error:
+            except socket.error:
                 return self._setMaskFail()
         else:
             # Bad type, should throw an exception
@@ -222,14 +220,14 @@ class IP4Addr(object):
         if (not isinstance(mask, long)):
             return False
 
-        if (mask < 0 or mask > inet_pton(AF_INET, "255.255.255.255")):
+        if (mask < 0 or mask > socket.inet_pton(socket.AF_INET, "255.255.255.255")):
             return False
 
         bits = [ 128, 64, 32, 16, 8, 4, 2, 1 ]
         hostbits = False
 
         # For every octet, check if mask is ok
-        for maskbyte in [ ord(x) for x in pack(">I", mask) ]:
+        for maskbyte in [ ord(x) for x in struct.pack(">I", mask)[0:4] ]:
             for bit in bits:
                 if (hostbits == False):
                     if (maskbyte & bit):
@@ -258,21 +256,21 @@ class IP4Addr(object):
     def setAddr(self, addr):
         if (isinstance(addr, int)):
             try:
-                self._addr_s = inet_ntop(AF_INET, pack("L", addr))
-                self._addr_i = htonl(addr)
+                self._addr_s = socket.inet_ntop(socket.AF_INET, struct.pack("L", addr)[0:4])
+                self._addr_i = socket.htonl(addr)
                 return self._setAddrSuccess()
-            except error:
+            except socket.error:
                 return self._setAddrFail()
         elif (isinstance(addr, str)):
             try:
-                #addrbytes = inet_pton(AF_INET, addr)
+                #addrbytes = socket.inet_pton(socket.AF_INET, addr)
                 #self._addr_i = self.add_octets(addrbytes)
                 self._addr_s = addr
-                self._addr_i = inet_pton(AF_INET, self._addr_s)
+                self._addr_i = socket.inet_pton(socket.AF_INET, self._addr_s)
                 self._addr_i = IP4Addr.add_octets(self._addr_i)
 
                 return self._setAddrSuccess()
-            except error:
+            except socket.error:
                 return self._setAddrFail()
         else:
             # Bad type, should throw an exception
