@@ -16,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 
-from ip4addr import IP4Addr
+import ip4addr
 
-class IP4Route(IP4Addr):
+class IP4Route(ip4addr.IP4Addr):
     MAX_METRIC = 65535
 
     def __init__(self, addr, mask = 32, metric = 0):

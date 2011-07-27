@@ -2,8 +2,8 @@
 # Unit tests.
 # To add a new test, write a function beginning with "ip4addr_test".
 
-from ip4addr import IP4Addr
-from ip4route import IP4Route
+import ip4addr
+import ip4route
 import sys
 
 def assert_equals(res, good):
@@ -39,7 +39,7 @@ def sanity():
     raise AssertionError
 
 def ip4addr_test_goodstr_goodint24():
-    addr = IP4Addr("192.168.1.1", 16777215)
+    addr = ip4addr.IP4Addr("192.168.1.1", 16777215)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -50,7 +50,7 @@ def ip4addr_test_goodstr_goodint24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_goodstr_goodstr24():
-    addr = IP4Addr("192.168.1.1", "255.255.255.0")
+    addr = ip4addr.IP4Addr("192.168.1.1", "255.255.255.0")
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -61,7 +61,7 @@ def ip4addr_test_goodstr_goodstr24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_goodstr_goodplen24():
-    addr = IP4Addr("192.168.1.1", 24)
+    addr = ip4addr.IP4Addr("192.168.1.1", 24)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -72,7 +72,7 @@ def ip4addr_test_goodstr_goodplen24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_goodint_goodplen24():
-    addr = IP4Addr(16885952, 24)
+    addr = ip4addr.IP4Addr(16885952, 24)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -83,7 +83,7 @@ def ip4addr_test_goodint_goodplen24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_goodint_goodstr24():
-    addr = IP4Addr(16885952, "255.255.255.0")
+    addr = ip4addr.IP4Addr(16885952, "255.255.255.0")
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -94,7 +94,7 @@ def ip4addr_test_goodint_goodstr24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_goodint_goodint24():
-    addr = IP4Addr(16885952, 16777215)
+    addr = ip4addr.IP4Addr(16885952, 16777215)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -105,15 +105,15 @@ def ip4addr_test_goodint_goodint24():
     assert_equals(addr.getPlen(), 24)
 
 def ip4addr_test_badstr_goodplen24():
-    addr = IP4Addr("1", 24)
+    addr = ip4addr.IP4Addr("1", 24)
     invalid_addr(addr)
 
 def ip4addr_test_goodstr_badmask():
-    addr = IP4Addr("1.1.1.1", 64)
+    addr = ip4addr.IP4Addr("1.1.1.1", 64)
     invalid_addr(addr)
 
 def ip4addr_test_goodstr_goodplen_default():
-    addr = IP4Addr("0.0.0.0", 0)
+    addr = ip4addr.IP4Addr("0.0.0.0", 0)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("0.0.0.0", 0))
@@ -124,7 +124,7 @@ def ip4addr_test_goodstr_goodplen_default():
     assert_equals(addr.getPlen(), 0)
 
 def ip4addr_test_goodstr_goodplen_hostroute():
-    addr = IP4Addr("192.168.1.1", 32)
+    addr = ip4addr.IP4Addr("192.168.1.1", 32)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("192.168.1.1", 3232235777))
@@ -135,19 +135,19 @@ def ip4addr_test_goodstr_goodplen_hostroute():
     assert_equals(addr.getPlen(), 32)
 
 def ip4addr_test_goodstr_badplen_negative():
-    addr = IP4Addr("192.168.1.1", -1)
+    addr = ip4addr.IP4Addr("192.168.1.1", -1)
     invalid_addr(addr)
 
 def ip4addr_test_goodstr_badplen_toohigh():
-    addr = IP4Addr("192.168.1.1", 33)
+    addr = ip4addr.IP4Addr("192.168.1.1", 33)
     invalid_addr(addr)
 
 def ip4addr_test_goodstr_badsnmask_toohigh():
-    addr = IP4Addr("192.168.1.1", 4294967293)
+    addr = ip4addr.IP4Addr("192.168.1.1", 4294967293)
     invalid_addr(addr)
 
 def ip4addr_test_goodstr_goodplen30():
-    addr = IP4Addr("10.0.4.2", 30)
+    addr = ip4addr.IP4Addr("10.0.4.2", 30)
 
     assert_equals(addr.isValid(), True)
     assert_equals(addr.getAddr(), ("10.0.4.2", 167773186))
@@ -158,7 +158,7 @@ def ip4addr_test_goodstr_goodplen30():
     assert_equals(addr.getPlen(), 30)
 
 def ip4addr_test_goodstr_badmask_nbo8():
-    addr = IP4Addr("10.0.4.2", 4278190080)
+    addr = ip4addr.IP4Addr("10.0.4.2", 4278190080)
     invalid_addr(addr)
 
 def invalid_addr(addr):
@@ -174,7 +174,7 @@ def invalid_addr(addr):
     assert_equals(addr.getPlen(), None)
 
 def ip4route_test_goodstr_goodplen_goodmetric():
-    rt = IP4Route("192.168.1.1", 24, 0)
+    rt = ip4route.IP4Route("192.168.1.1", 24, 0)
 
     assert_equals(rt.isValid(), True)
     assert_equals(rt.getMetric(), 0)
@@ -186,27 +186,27 @@ def ip4route_test_goodstr_goodplen_goodmetric():
     assert_equals(rt.getPlen(), 24)
 
 def ip4route_test_goodstr_goodplen_badmetric_toohigh():
-    rt = IP4Route("192.168.1.1", 24, 65536)
+    rt = ip4route.IP4Route("192.168.1.1", 24, 65536)
 
     assert_equals(rt.isValid(), False)
     assert_equals(rt.getMetric(), None)
 
 def ip4route_test_set_plen_good():
-    rt = IP4Route("192.168.1.1", 24)
+    rt = ip4route.IP4Route("192.168.1.1", 24)
 
     assert_equals(rt.isValid(), True)
     rt.setPlen(23)
     assert_equals(rt.getPlen(), 23)
 
 def ip4route_test_set_metric_good():
-    rt = IP4Route("192.168.1.1", 24, 1)
+    rt = ip4route.IP4Route("192.168.1.1", 24, 1)
 
     assert_equals(rt.isValid(), True)
     rt.setMetric(2)
     assert_equals(rt.getMetric(), 2)
 
 def ip4route_test_goodstr_goodplen_impliedmetric():
-    rt = IP4Route("192.168.1.1", 24)
+    rt = ip4route.IP4Route("192.168.1.1", 24)
 
     assert_equals(rt.isValid(), True)
     assert_equals(rt.getMetric(), 0)
@@ -214,13 +214,13 @@ def ip4route_test_goodstr_goodplen_impliedmetric():
     assert_equals(rt.getPlen(), 24)
  
 def ip4route_test_goodstr_goodplen_badmetric_negative():
-    rt = IP4Route("192.168.1.1", 24, -1)
+    rt = ip4route.IP4Route("192.168.1.1", 24, -1)
 
     assert_equals(rt.isValid(), False)
     assert_equals(rt.getMetric(), None)
 
 def ip4route_test_goodstr_badplen_goodmetric():
-    rt = IP4Route("192.168.1.1", -1, 0)
+    rt = ip4route.IP4Route("192.168.1.1", -1, 0)
 
     assert_equals(rt.isValid(), False)
     assert_equals(rt.getMetric(), None)
@@ -232,16 +232,16 @@ def main():
     sanity()
     print "OK"
 
-    run_ip4addr_tests()
-    run_ip4route_tests()
+    run_tests_by_name("ip4addr")
+    run_tests_by_name("ip4route")
     print "* All tests succeeded."
 
-def run_ip4addr_tests():
-    print "* Beginning unit tests for IP4Addr class."
+def run_tests_by_name(name):
+    print "* Beginning unit tests for " + name + " class."
     try:
-        # Find all methods starting with "ip4addr_test" and run them.
+        # Find all methods starting with NAME_test and run them
         for test in dir(sys.modules[__name__]):
-            if (test.startswith("ip4addr_test")):
+            if (test.startswith(name + "_test")):
                 sys.stdout.write("Running " + test + "... ")
                 getattr(sys.modules[__name__], test)()
                 print "OK"
@@ -252,25 +252,7 @@ def run_ip4addr_tests():
         e.args = ""
         raise
 
-    print "* All IP4Addr tests succeeded."
-
-def run_ip4route_tests():
-    print "* Beginning unit tests for IP4Route class."
-    try:
-        # Find all methods starting with "ip4route_test" and run them.
-        for test in dir(sys.modules[__name__]):
-            if (test.startswith("ip4route_test")):
-                sys.stdout.write("Running " + test + "... ")
-                getattr(sys.modules[__name__], test)()
-                print "OK"
-    except AssertionError as e:
-        print "Failed"
-        for arg in e.args:
-            print arg,
-        e.args = ""
-        raise
-
-    print "* All IP4Route tests succeeded."
+    print "* All " + name + " tests succeeded."
 
 if (__name__ == "__main__"):
     main()
