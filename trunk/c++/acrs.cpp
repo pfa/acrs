@@ -21,11 +21,13 @@
 #include <list>
 #include <iterator>
 #include <algorithm>
+#include <string>
 
 #include "acrs.hpp"
 #include "ip4addr.hpp"
 
-namespace IP4Addr { namespace Acrs {
+namespace IP4Addr {
+namespace Acrs {
     /* Compare two AcrsRoute4 to determine which should come first.
      *
      * Sort by prefix length in descending order,
@@ -56,7 +58,7 @@ namespace IP4Addr { namespace Acrs {
 
         /* If reached, prefix lengths are the same */
 
-        if (rt1.getNetwork(0) < rt2.getNetwork(0))
+        if (rt1.getNetwork().second < rt2.getNetwork().second)
         {
             return true;
         }
@@ -74,11 +76,11 @@ namespace IP4Addr { namespace Acrs {
      */
     bool overlapCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2)
     {
-        if (rt1.getNetwork(0) < rt2.getNetwork(0))
+        if (rt1.getNetwork().second < rt2.getNetwork().second)
         {
             return true;
         }
-        else if (rt1.getNetwork(0) > rt2.getNetwork(0))
+        else if (rt1.getNetwork().second > rt2.getNetwork().second)
         {
             return false;
         }
@@ -138,8 +140,8 @@ namespace IP4Addr { namespace Acrs {
                 continue;
             }
 
-            if ((cur->getNetwork(0) & prev->getSnmask(0)) ==
-                prev->getNetwork(0))
+            if ((cur->getNetwork().second & prev->getMask().second) ==
+                prev->getNetwork().second)
             {
                 /* Only use if the summary route would
                  * have an equal or better metric compared to
@@ -214,17 +216,16 @@ namespace IP4Addr { namespace Acrs {
                 continue;
             }
 
-            if (prev->getBroadcast(0) + 1 != cur->getNetwork(0))
+            if (prev->getBroadcast().second + 1 != cur->getNetwork().second)
             {
                 continue;
             }
 
             /* Net address of the resulting network must be equal
              * to net address of lowest network. */
-            char buf[INET_ADDRSTRLEN];
-            prev->getNetwork(buf);
-            AcrsRoute4 possible(buf, prev->getPlen() - 1, 0);
-            if (possible.getNetwork(0) == prev->getNetwork(0))
+            AcrsRoute4 possible(prev->getNetwork().first,
+                                prev->getPlen() - 1, 0);
+            if (possible.getNetwork().second == prev->getNetwork().second)
             {
                 /* Can summarize these */
 
@@ -277,13 +278,13 @@ namespace IP4Addr { namespace Acrs {
         AcrsRoute4::init(metric);
     }
 
-    AcrsRoute4::AcrsRoute4(char * addr, char * mask, int metric)
+    AcrsRoute4::AcrsRoute4(std::string addr, std::string mask, int metric)
                            : IP4Addr::IP4Addr(addr, mask)
     {
         AcrsRoute4::init(metric);
     }
 
-    AcrsRoute4::AcrsRoute4(char * addr, plen_t plen, int metric)
+    AcrsRoute4::AcrsRoute4(std::string addr, plen_t plen, int metric)
                            : IP4Addr::IP4Addr(addr, plen)
     {
         AcrsRoute4::init(metric);
@@ -291,11 +292,7 @@ namespace IP4Addr { namespace Acrs {
 
     std::ostream & operator<<(std::ostream & os, AcrsRoute4 & rt)
     {
-        char net[INET_ADDRSTRLEN];
-
-        rt.getNetwork(net);
-
-        os << net << "/" << (int) rt.getPlen() << " in "
+        os << rt.getNetwork().first << "/" << (int) rt.getPlen() << " in "
            << rt.getMetric();
 
         return os;

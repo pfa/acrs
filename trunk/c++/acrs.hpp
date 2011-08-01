@@ -4,6 +4,7 @@
 #define ACRS_ROUTE_H
 
 #include <iostream>
+#include <string>
 #include <list>
 
 #include "ip4addr.hpp"
@@ -18,8 +19,8 @@ namespace IP4Addr { namespace Acrs {
     public:
         AcrsRoute4(int metric);
         AcrsRoute4(in_addr_t addr, in_addr_t mask, int metric);
-        AcrsRoute4(char * addr, char * mask, int metric);
-        AcrsRoute4(char * addr, plen_t plen, int metric);
+        AcrsRoute4(std::string addr, std::string mask, int metric);
+        AcrsRoute4(std::string addr, plen_t plen, int metric);
 
         friend std::ostream & operator<<(std::ostream & os,
                                          AcrsRoute4 & rt);

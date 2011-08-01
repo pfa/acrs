@@ -263,8 +263,6 @@ class IP4Addr(object):
                 return self._setAddrFail()
         elif (isinstance(addr, str)):
             try:
-                #addrbytes = socket.inet_pton(socket.AF_INET, addr)
-                #self._addr_i = self.add_octets(addrbytes)
                 self._addr_s = addr
                 self._addr_i = socket.inet_pton(socket.AF_INET, self._addr_s)
                 self._addr_i = IP4Addr.add_octets(self._addr_i)
@@ -274,7 +272,7 @@ class IP4Addr(object):
                 return self._setAddrFail()
         else:
             # Bad type, should throw an exception
-            return self._setAddrFail()
+            raise TypeError()
 
     def _setAddrSuccess(self):
         self._addr_valid = True

@@ -1,0 +1,28 @@
+31 July 2011
+
+General:
+    1. Added license file
+
+C++:
+    1. There were a number of IP4Addr class interface changes that made sense
+       to make which allowed the C++ and python code behave more consistently
+       with each other:
+        1.1 get* functions now return std::pair<std::string, in_addr_t>.
+            The string is the result in string form, the in_addr_t is the
+            result as an NBO integer. (The getPlen function still just returns
+            an int.)
+        1.2 All places where char *'s were used are now using std::string
+        1.3 A setMask() function was added which will distinguish between
+            prefix lengths and subnet masks. The old setSnmask and setPlen
+            functions are still available.
+        1.4 There is now only one IP4Addr constructor taking an integer-type
+            argument, and the type is now a uint32_t. It will figure out
+            whether the argument is intended to be a prefix length or a subnet
+            mask in HBO integer form. This means you don't have to cast
+            the type in your constructor to a plen_t or in_addr_t any longer.
+    3. Added unit tests using the cpptest library
+    4. Added makefile
+
+Python:
+    1. The IP4Addr class will throw a TypeError if setAddr is passed something
+       other than an int or str
