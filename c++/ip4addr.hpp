@@ -3,10 +3,7 @@
 
 #include <inttypes.h>
 #include <arpa/inet.h>
-
-/* XXX Integers must be set in Little Endian, and are stored in Big Endian.
- *     Update to handle any endianness and store in NBO.
- */
+#include <string>
 
 namespace IP4Addr
 {
@@ -16,59 +13,61 @@ namespace IP4Addr
     class IP4Addr
     {
     private:
-        in_addr_t    m_addr_i;
-        char         m_addr_s[INET_ADDRSTRLEN];
-        in_addr_t    m_snmask_i;
-        char         m_snmask_s[INET_ADDRSTRLEN];
-        plen_t       m_plen;
-        hash_t       m_hash;
-
-        bool addrValid;
-        bool maskValid;
+        std::pair<std::string, in_addr_t> m_addr;
+        std::pair<std::string, in_addr_t> m_snmask;
+        plen_t m_plen;
+        hash_t m_hash;
+        bool m_addr_valid;
+        bool m_mask_valid;
 
         /* Helper functions */
-        plen_t smtopl(in_addr_t mask);
+        plen_t smtopl(in_addr_t mask) const;
         in_addr_t pltosm(plen_t plen) const;
-        hash_t makeHash(in_addr_t addr, in_addr_t snmask);
-            hash_t makeHash(in_addr_t addr, plen_t plen);
+        hash_t makeHash(in_addr_t addr, in_addr_t snmask) const;
+        hash_t makeHash(in_addr_t addr, plen_t plen) const;
         bool valid_snmask_i(in_addr_t snmask) const;
-        void updateNetInfo();
-
-        bool setAddrSuccess();
-        bool setAddrFail();
-        bool setMaskSuccess();
-        bool setMaskFail();
+        void updateNetInfo(void);
+        bool isValidPlen(unsigned int plen) const;
+        bool isValidSnmask(uint32_t mask);
+        bool setAddrSuccess(void);
+        bool setAddrFail(void);
+        bool setMaskSuccess(void);
+        bool setMaskFail(void);
 
     public:
         /* Get functions */
-        in_addr_t      getAddr(char * buf);
-        in_addr_t      getSnmask(char * buf);
-        in_addr_t      getBroadcast(char * buf);
-        in_addr_t      getHostmask(char * buf);
-        in_addr_t      getNetwork(char * buf);
-        hash_t         getHash();
-        plen_t         getPlen();
+        std::pair<std::string, in_addr_t> getAddr(void) const;
+        std::pair<std::string, in_addr_t> getMask(void) const;
+        std::pair<std::string, in_addr_t> getBroadcast(void) const;
+        std::pair<std::string, in_addr_t> getHostmask(void) const;
+        std::pair<std::string, in_addr_t> getNetwork(void) const;
+        hash_t getHash(void) const;
+        plen_t getPlen(void) const;
 
-        /* Set functions (non-overloaded) */
-        bool           setAddr_s(char * addr_s);
-        bool           setAddr_i(in_addr_t addr_i);
-        bool           setSnmask_s(char * snmask_s);
-        bool           setSnmask_i(in_addr_t snmask_i);
-        bool           setPlen(int plen);
+        /* Set functions */
+        bool setAddr(std::string & addr_s);
+        bool setAddr(in_addr_t addr_i);
+        bool setMask(std::string & snmask_s);
+        bool setMask(unsigned int snmask_i);
+        bool setSnmask(std::string & snmask_s);
+        bool setSnmask(in_addr_t snmask_i);
+        bool setPlen(int plen);
 
-        /* CTORs -- arguments are the same as setter functions */
-        IP4Addr();
-        IP4Addr(char * addr_s, plen_t plen);
-        IP4Addr(char * addr_s, char * snmask_s);
-        IP4Addr(in_addr_t addr_i, in_addr_t snmask_i);
-        IP4Addr(in_addr_t addr_i, plen_t plen);
+        /* Constructors */
+        IP4Addr(void);
+        IP4Addr(std::string addr_s, uint32_t mask);
+        IP4Addr(std::string addr_s, std::string snmask_s);
+        IP4Addr(in_addr_t addr_i, uint32_t mask);
+        IP4Addr(in_addr_t addr_i, std::string snmask_s);
+
+        virtual ~IP4Addr() {};
 
         /* Other */
-        bool isValid(void);
-        in_addr_t withSnmask(in_addr_t snmask_i) const;
-        in_addr_t withSnmask(plen_t plen) const;
-        friend std::ostream & operator<<(std::ostream & os,
-                                         IP4Addr & ip);
+        bool isValid(void) const;
+        in_addr_t withMask(in_addr_t snmask_i) const;
+        in_addr_t withMask(plen_t plen) const;
+        void printAll(std::ostream & os);
+        friend std::ostream & operator<<(std::ostream & os, IP4Addr & ip);
     };
 }
 
