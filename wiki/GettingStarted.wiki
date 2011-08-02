@@ -115,7 +115,7 @@ Output:
 10.0.0.0/24 in 0
 }}}
 
-Try some other routes, too. The "in 0" message is the metric, which can be ignored while you're using the demo. The library supports different metrics, but the demo does not. It assigns all routes a metric of 0, so they are all eligible to be summarized with each other as far as that condition is concerned.
+Try some other routes, too. The "in 0" message is the metric, which can be ignored while you're using the demo. The library supports different metrics, but the demo does not. The demo program assigns all routes a metric of 0, so all routes are eligible to be summarized with one another as far as that condition is concerned.
 
 You can enable logging by passing the -l flag as the first argument to the acrs-demo command. For example:
 
