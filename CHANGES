@@ -1,7 +1,7 @@
 1 August 2011
 
 C++:
-    1. Split Acrs4Route into two classes: Acrs4 and IP4Route
+    1. Split Acrs4Route into Acrs4 and IP4Route
     2. Added acrs-demo to the Makefile
 
 31 July 2011

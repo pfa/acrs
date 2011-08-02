@@ -22,7 +22,7 @@ ip4addr-test.o : ip4addr-test.cpp ip4addr-test.hpp
 
 all : $(PROGRAMS)
 
-test :
+test : run-tests
 	./run-tests
 
 clean :
