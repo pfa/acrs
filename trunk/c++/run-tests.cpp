@@ -6,5 +6,6 @@ int main(void)
 {
     IP4AddrTest ip4addr_tests;
     Test::TextOutput output(Test::TextOutput::Verbose);
-    return ip4addr_tests.run(output);
+    ip4addr_tests.run(output);
+    return 0;
 }

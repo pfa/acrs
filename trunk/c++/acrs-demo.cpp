@@ -39,15 +39,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "acrs.hpp"
+#include "acrs4.hpp"
 
-int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
+int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
              char * rts[]);
 void usage(void);
 
 int main(int argc, char * argv[])
 {
-    std::list<IP4Addr::Acrs::AcrsRoute4> rtlist;
+    std::list<IP4Route::IP4Route> rtlist;
     int startind = 1;
     bool logging = false;
 
@@ -79,10 +79,9 @@ int main(int argc, char * argv[])
         return 2;
     }
 
-        Summarize(rtlist, logging, std::cout);
+        Acrs4::Summarize(rtlist, logging, std::cout);
 
-        for (std::list<IP4Addr::Acrs::AcrsRoute4>::iterator iter =
-                                                            rtlist.begin();
+        for (std::list<IP4Route::IP4Route>::iterator iter = rtlist.begin();
              iter != rtlist.end();
              iter++)
         {
@@ -94,12 +93,13 @@ int main(int argc, char * argv[])
 
 void usage(void)
 {
-    std::cerr << "Usage: acrs-demo [-l] <ROUTE> [ROUTE ROUTE ...]"
-              << std::endl;
+    std::cerr << "Usage: acrs-demo [-l] <PREFIX> [PREFIX ...]" << std::endl
+              << "PREFIX is an IPv4 address and mask in CIDR form (e.g. "
+              << "192.168.1.1/24)" << std::endl;
     return;
 }
 
-int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
+int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
              char * rts[])
 {
     for (int i = 0; i < numrts; i++)
@@ -125,7 +125,7 @@ int get_list(std::list<IP4Addr::Acrs::AcrsRoute4> & rtlist, int numrts,
         
         uint8_t preflen = atoi(ptr2);
         int metric = 0;
-        IP4Addr::Acrs::AcrsRoute4 newrt(ipstr, preflen, metric);
+        IP4Route::IP4Route newrt(ipstr, preflen, metric);
         if (newrt.isValid() == false)
         {
             return false;

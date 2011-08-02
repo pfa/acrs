@@ -26,9 +26,9 @@ namespace IP4Addr
         hash_t makeHash(in_addr_t addr, in_addr_t snmask) const;
         hash_t makeHash(in_addr_t addr, plen_t plen) const;
         bool valid_snmask_i(in_addr_t snmask) const;
-        void updateNetInfo(void);
         bool isValidPlen(unsigned int plen) const;
-        bool isValidSnmask(uint32_t mask);
+        bool isValidSnmask(uint32_t mask) const;
+        void updateNetInfo(void);
         bool setAddrSuccess(void);
         bool setAddrFail(void);
         bool setMaskSuccess(void);

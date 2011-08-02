@@ -1,3 +1,9 @@
+1 August 2011
+
+C++:
+    1. Split Acrs4Route into two classes: Acrs4 and IP4Route
+    2. Added acrs-demo to the Makefile
+
 31 July 2011
 
 General:
@@ -5,7 +11,7 @@ General:
 
 C++:
     1. There were a number of IP4Addr class interface changes that made sense
-       to make which allowed the C++ and python code behave more consistently
+       to make which allows the C++ and python code behave more consistently
        with each other:
         1.1 get* functions now return std::pair<std::string, in_addr_t>.
             The string is the result in string form, the in_addr_t is the

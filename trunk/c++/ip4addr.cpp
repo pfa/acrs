@@ -45,54 +45,6 @@ namespace IP4Addr
         return makeHash(addr, plen);
     }
 
-    /* valid_snmask_i
-     * Make sure all the bits flipped on are to the 'left' side of the
-     * number.  Otherwise it's not a subnet mask.
-     */
-    bool IP4Addr::valid_snmask_i(in_addr_t snmask) const
-    {
-        char maskchk[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-        char * chkptr = maskchk;
-        uint8_t * octet;
-        bool hostbits = false;
-
-        //snmask = htonl(snmask);
-         octet = (uint8_t *) &snmask;
-
-        /* For every octet, check if the mask is ok */
-        for (int i = 0; i < 4; i++, octet++)
-        {
-            for (chkptr = maskchk; chkptr <= &maskchk[7]; chkptr++)
-            {
-                if (! hostbits)
-                {
-                    if (*chkptr & *octet)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        hostbits++;
-                    }
-                }
-                else
-                {
-                    if (*chkptr & *octet)
-                    {
-                        /* Bad mask */
-                        return false;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     /* pltosn
      *
      * Prefix length to subnet mask.
@@ -355,7 +307,7 @@ namespace IP4Addr
         }
     }
 
-    bool IP4Addr::isValidSnmask(uint32_t mask)
+    bool IP4Addr::isValidSnmask(uint32_t mask) const
     {
         if (mask == 0)
         {
@@ -512,10 +464,7 @@ namespace IP4Addr
             return os;
         }
 
-        std::pair<std::string, in_addr_t> ip_pair = ip.getNetwork();
-
-        os << ip_pair.first << "/"
-           << ip_pair.second << std::endl;
+        os << ip.getNetwork().first << "/" << ip.getPlen() << std::endl;
 
         return os;
     }
@@ -548,7 +497,7 @@ namespace IP4Addr
      */
     in_addr_t IP4Addr::withMask(in_addr_t snmask_i) const
     {
-        if (! valid_snmask_i(snmask_i)) {
+        if (! isValidSnmask(snmask_i)) {
             return 0;
         }
 

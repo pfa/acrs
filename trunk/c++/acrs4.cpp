@@ -23,18 +23,17 @@
 #include <algorithm>
 #include <string>
 
-#include "acrs.hpp"
+#include "acrs4.hpp"
 #include "ip4addr.hpp"
 
-namespace IP4Addr {
-namespace Acrs {
-    /* Compare two AcrsRoute4 to determine which should come first.
+namespace Acrs4 {
+    /* Compare two IP4Route::IP4Route to determine which should come first.
      *
      * Sort by prefix length in descending order,
      * then by network address in ascending order,
      * then by metric in ascending order.
      */
-    bool acrsCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2)
+    bool acrsCmp(IP4Route::IP4Route & rt1, IP4Route::IP4Route & rt2)
     {
         if (rt1.getMetric() < rt2.getMetric())
         {
@@ -74,7 +73,7 @@ namespace Acrs {
      * then by prefix length in ascending order,
      * then by metric in ascending order.
      */
-    bool overlapCmp(AcrsRoute4 & rt1, AcrsRoute4 & rt2)
+    bool overlapCmp(IP4Route::IP4Route & rt1, IP4Route::IP4Route & rt2)
     {
         if (rt1.getNetwork().second < rt2.getNetwork().second)
         {
@@ -111,7 +110,7 @@ namespace Acrs {
     /* Summarize and remove overlapping address space.
      * return true if any summarization was done, return false otherwise.
      */
-    bool Summarize(std::list<AcrsRoute4> & rtlist, bool logging,
+    bool Summarize(std::list<IP4Route::IP4Route> & rtlist, bool logging,
                    std::ostream & os)
     {
         if (logging)
@@ -120,7 +119,7 @@ namespace Acrs {
         }
 
         bool summarized = SummarizeOverlap(rtlist, logging, os);
-        std::list<AcrsRoute4>::iterator oiter;
+        std::list<IP4Route::IP4Route>::iterator oiter;
 
         if (logging)
         {
@@ -129,9 +128,9 @@ namespace Acrs {
 
         rtlist.sort(overlapCmp);
 
-        AcrsRoute4 * prev = NULL;
+        IP4Route::IP4Route * prev = NULL;
 
-        for (std::list<AcrsRoute4>::iterator cur = rtlist.begin();
+        for (std::list<IP4Route::IP4Route>::iterator cur = rtlist.begin();
              cur != rtlist.end();
              prev = &(*cur), cur++)
         {
@@ -187,15 +186,15 @@ namespace Acrs {
     /* Summarize a route list without caring about duplicates.
      * return true if any summarization was done, return false otherwise.
      */
-    bool SummarizeOverlap(std::list<AcrsRoute4> & rtlist,
+    bool SummarizeOverlap(std::list<IP4Route::IP4Route> & rtlist,
                           bool logging, std::ostream & os)
     {
-        AcrsRoute4 * prev = NULL;
+        IP4Route::IP4Route * prev = NULL;
         bool summarized = false;
 
         rtlist.sort(acrsCmp);
 
-        for (std::list<AcrsRoute4>::iterator cur = rtlist.begin();
+        for (std::list<IP4Route::IP4Route>::iterator cur = rtlist.begin();
              cur != rtlist.end();
              prev = &(*cur), cur++)
         {
@@ -223,7 +222,7 @@ namespace Acrs {
 
             /* Net address of the resulting network must be equal
              * to net address of lowest network. */
-            AcrsRoute4 possible(prev->getNetwork().first,
+            IP4Route::IP4Route possible(prev->getNetwork().first,
                                 prev->getPlen() - 1, 0);
             if (possible.getNetwork().second == prev->getNetwork().second)
             {
@@ -261,40 +260,4 @@ namespace Acrs {
             return false;
         }
     }
-
-    void AcrsRoute4::init(int metric)
-    {
-        m_metric = metric;
-    }
-
-    AcrsRoute4::AcrsRoute4(int metric) : IP4Addr::IP4Addr()
-    {
-        AcrsRoute4::init(metric);
-    }
-
-    AcrsRoute4::AcrsRoute4(in_addr_t addr, in_addr_t mask, int metric)
-                           : IP4Addr::IP4Addr(addr, mask)
-    {
-        AcrsRoute4::init(metric);
-    }
-
-    AcrsRoute4::AcrsRoute4(std::string addr, std::string mask, int metric)
-                           : IP4Addr::IP4Addr(addr, mask)
-    {
-        AcrsRoute4::init(metric);
-    }
-
-    AcrsRoute4::AcrsRoute4(std::string addr, plen_t plen, int metric)
-                           : IP4Addr::IP4Addr(addr, plen)
-    {
-        AcrsRoute4::init(metric);
-    }
-
-    std::ostream & operator<<(std::ostream & os, AcrsRoute4 & rt)
-    {
-        os << rt.getNetwork().first << "/" << (int) rt.getPlen() << " in "
-           << rt.getMetric();
-
-        return os;
-    }
-} }
+}
