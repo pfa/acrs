@@ -74,7 +74,7 @@ Steps:
   # Extract the source code
   # Run make
 
-For Linux systems:
+For Debian/Ubuntu systems:
 
 {{{
 apt-get install g++
@@ -91,7 +91,7 @@ Steps:
   # Download the code from googlecode using subversion
   # Run make
 
-For Linux systems:
+For Debian/Ubuntu systems:
 
 {{{
 apt-get install subversion g++
