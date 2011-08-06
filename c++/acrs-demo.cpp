@@ -1,4 +1,4 @@
-/* acrs-demo.cpp - demo of acrs as-is
+/* acrs-demo.cpp - demo of the acrs4 library
  *
  * Copyright 2011 Patrick F. Allen
  *
@@ -38,8 +38,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "acrs4.hpp"
+
+#define OPTIONS "lh"
 
 int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[]);
 void usage(void);
@@ -49,37 +52,39 @@ int main(int argc, char * argv[])
     Acrs4::Acrs4 summary;
     int startind = 1;
     bool logging = false;
+    char c;
 
     if (argc == 1)
     {
         usage();
-        return 1;
+        return 2;
     }
 
-    /* Check for log flag, must be first argument */
-    if (strlen(argv[1]) == 2)
+    while ((c = getopt(argc, argv, OPTIONS)) != -1)
     {
-        if (argv[1][0] == '-' && argv[1][1] == 'l')
+        switch (c)
         {
-            if (argc == 2)
-            {
+            case 'l':
+                summary.setLogging(true);
+                startind += 1;
+                break;
+            case 'h':
                 usage();
-                return 1;
-            }
-
-            startind = 2;    
-            logging = true;
+                return 2;
+                break;
+            default:
+                usage();
+                return 2;
+                break;
         }
     }
 
     if (get_list(summary, argc - startind, &argv[startind]) == false)
     {
-        std::cerr << "Bad list. (To enable logging, "
-                     "-l must be the first argument.)" << std::endl;
+        std::cerr << "Bad list." << std::endl;
         return 2;
     }
 
-    summary.setLogging(logging);
     summary.summarize();
 
     for (std::list<IP4Route::IP4Route>::iterator iter = summary.begin();
@@ -96,7 +101,9 @@ void usage(void)
 {
     std::cerr << "Usage: acrs-demo [-l] <PREFIX> [PREFIX ...]" << std::endl
               << "PREFIX is an IPv4 address and mask in CIDR form (e.g. "
-              << "192.168.1.1/24)" << std::endl;
+              << "192.168.1.1/24)" << std::endl
+              << "Use -l to enable logging"
+              << std::endl;
     return;
 }
 
