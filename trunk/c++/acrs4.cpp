@@ -1,4 +1,4 @@
-/* acrs.cpp - Automatic classless route summarization
+/* acrs4.cpp - Automatic classless route summarization
  *
  * Copyright 2011 Patrick F. Allen
  *
@@ -23,10 +23,24 @@
 #include <algorithm>
 #include <string>
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "acrs4.hpp"
 #include "ip4addr.hpp"
 
-namespace Acrs4 {
+namespace Acrs4
+{
+    void Acrs4::log(const std::string & msg) const
+    {
+        if (m_logging == false)
+        {
+            return;
+        }
+
+        m_os << msg << std::flush;
+    }
+
     /* Compare two IP4Route::IP4Route to determine which should come first.
      *
      * Sort by prefix length in descending order,
@@ -107,103 +121,104 @@ namespace Acrs4 {
         }
     }
 
-    /* Summarize and remove overlapping address space.
+    bool Acrs4::summarize(void)
+    {
+        log("* Main summarization:\n");
+        bool summarized1 = summarizeMain();
+
+        if (summarized1 == false)
+        {
+            log("*   No routes affected by main summarization.\n");
+        }
+
+        log("* Overlap removal:\n");
+        bool summarized2 = summarizeOverlap();
+
+        if (summarized2 == false)
+        {
+            log("*   No overlapping routes.\n");
+        }
+
+        if ((summarized1 | summarized2) == true)
+        {
+            log("* Finished. List was summarized.\n");
+            return true;
+        }
+        else
+        {
+            log("* Finished. No summarization performed.\n");
+            return false;
+        }
+    }
+
+    /* summarize and remove overlapping address space.
      * return true if any summarization was done, return false otherwise.
      */
-    bool Summarize(std::list<IP4Route::IP4Route> & rtlist, bool logging,
-                   std::ostream & os)
+    bool Acrs4::summarizeOverlap(void)
     {
-        if (logging)
+        sort(overlapCmp);
+        bool summarized = false;
+
+        /* prev starts at element 0, cur starts at element 1 */
+        std::list<IP4Route::IP4Route>::iterator cur = begin();
+
+        if (cur == end())
         {
-            os << "* Main summarization:" << std::endl;
+            return false;
         }
 
-        bool summarized = SummarizeOverlap(rtlist, logging, os);
-        std::list<IP4Route::IP4Route>::iterator oiter;
-
-        if (logging)
+        IP4Route::IP4Route * prev = &(*cur);
+        for (cur++; cur != end(); prev = &(*cur), cur++)
         {
-            os << "* Overlap removal:" << std::endl;
-        }
-
-        rtlist.sort(overlapCmp);
-
-        IP4Route::IP4Route * prev = NULL;
-
-        for (std::list<IP4Route::IP4Route>::iterator cur = rtlist.begin();
-             cur != rtlist.end();
-             prev = &(*cur), cur++)
-        {
-            if (! prev)
-            {
-                continue;
-            }
-
             if ((cur->getNetwork().second & prev->getMask().second) ==
                 prev->getNetwork().second)
             {
-                /* Only use if the summary route would
-                 * have an equal or better metric compared to
-                 * the specific one */
+                /* Only use if the summary route would have an equal or
+                 * better metric compared to the specific one */
                 if (cur->getMetric() < prev->getMetric())
                 {
                     continue;
                 }
 
                 /* Overlapping prefixes */
-                if (logging)
-                {
-                    os << "*   Removing '" << *cur
-                       << "', which falls within '"
-                       << *prev << "'" << std::endl;
-                }
+                log("*  Removing '" + cur->str() + "', which faills within '" +
+                    prev->str() + "'\n");
 
-                rtlist.erase(cur);
+                erase(cur);
                 cur--;
                 summarized = true;
-
             }
         }
 
-        if (logging)
-        {
-            os << "* Finished. ";
-
-            if (summarized)
-            {
-                os << "List was summarized."
-                       << std::endl;
-            }
-            else
-            {
-                os << "No summarization performed."
-                       << std::endl;
-            }
-        }
         return summarized;
     }
 
-    /* Summarize a route list without caring about duplicates.
+    /* summarize a route list without caring about duplicates.
      * return true if any summarization was done, return false otherwise.
      */
-    bool SummarizeOverlap(std::list<IP4Route::IP4Route> & rtlist,
-                          bool logging, std::ostream & os)
+    bool Acrs4::summarizeMain(void)
     {
-        IP4Route::IP4Route * prev = NULL;
         bool summarized = false;
 
-        rtlist.sort(acrsCmp);
+        sort(acrsCmp);
 
-        for (std::list<IP4Route::IP4Route>::iterator cur = rtlist.begin();
-             cur != rtlist.end();
-             prev = &(*cur), cur++)
+        /* prev starts at element 0, cur starts at element 1 */
+        std::list<IP4Route::IP4Route>::iterator cur = begin();
+
+        if (cur == end())
+        {
+            return false;
+        }
+
+        IP4Route::IP4Route * prev = &(*cur);
+        for (cur++; cur != end(); prev = &(*cur), cur++)
         {
             if (! prev)
             {
                 continue;
             }
 
-            // Prefix lengths must match
+            /* Prefix lengths must match */
             if (prev->getPlen() != cur->getPlen())
             {
                 continue;
@@ -223,27 +238,19 @@ namespace Acrs4 {
             /* Net address of the resulting network must be equal
              * to net address of lowest network. */
             IP4Route::IP4Route possible(prev->getNetwork().first,
-                                prev->getPlen() - 1, 0);
+                                        prev->getPlen() - 1);
             if (possible.getNetwork().second == prev->getNetwork().second)
             {
                 /* Can summarize these */
+                log("*   Summarized '" + prev->str() + "' and '" +
+                    cur->str() + "' into '");
 
-                if (logging)
-                {
-                    os << "*   Summarized '" << *prev
-                       << "' and '" << *cur << "' into '";
-                }
-
-                rtlist.erase(cur);
+                erase(cur);
                 cur--;
                 cur->setPlen(cur->getPlen() - 1);
-
                 summarized = true;
 
-                if (logging)
-                {
-                    os << *cur << "'" << std::endl;
-                }
+                log(cur->str() + "'\n");
             }
         }
 
@@ -252,7 +259,7 @@ namespace Acrs4 {
          */
         if (summarized == true)
         {
-            SummarizeOverlap(rtlist, logging, os);
+            summarizeOverlap();
             return true;
         }
         else

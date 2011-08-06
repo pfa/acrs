@@ -118,7 +118,7 @@ namespace IP4Route
             return os;
         }
 
-        os << rt.getNetwork().first << "/" << (int) rt.getPlen() << " in "
+        os << rt.getNetwork().first << "/" << rt.getPlen() << " in "
            << rt.getMetric();
 
         return os;

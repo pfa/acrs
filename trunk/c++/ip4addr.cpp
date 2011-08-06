@@ -17,55 +17,47 @@
  *
  */
 
-/* Stores integers in NBO */
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
 
 #include <arpa/inet.h>
 #include <inttypes.h>
-#include <iostream>
-#include <string>
-#include <cstring>
 
 #include "ip4addr.hpp"
 
 namespace IP4Addr
 {
-    hash_t IP4Addr::makeHash(in_addr_t addr, plen_t plen) const
+    uint64_t IP4Addr::makeHash(in_addr_t addr, uint32_t mask) const
     {
-        return ((addr << 31) + plen);
-    }
+        /* If given a prefix length, convert to subnet mask */
+        if (isValidPlen(mask))
+        {
+            mask = pltosm(mask);
+        }
 
-    hash_t IP4Addr::makeHash(in_addr_t addr, in_addr_t snmask) const
-    {
-        /* Since the hash is a network address + prefix length,
-         * if we are given the subnet mask we must first convert it
-         * to a prefix length. */
-        plen_t plen = smtopl(snmask);
+        if (! isValidSnmask(mask))
+        {
+            return 0;
+        }
 
-        /* Call the other hash function */
-        return makeHash(addr, plen);
+        return ((addr << 31) + mask);
     }
 
     /* pltosn
      *
      * Prefix length to subnet mask.
      */
-    in_addr_t IP4Addr::pltosm(plen_t plen) const
+    in_addr_t IP4Addr::pltosm(uint32_t plen) const
     {
-        uint32_t highbit = 1 << 31;  /* Leftmost bit flipped on */
-
-        /* The following won't work with a prefix length of 0,
-         * so handle that now */
-        if (plen == 0)
+        /* If prefix length is invalid or zero, return 0 */
+        if ((isValidPlen(plen) == false) || plen == 0)
         {
             return 0;
         }
 
-        /* If the prefix length was greater than the max,
-         * reduce it to 32. */
-        if (plen > 32)
-        {
-            plen = 32;
-        }
+        uint32_t highbit = 1 << 31;  /* Leftmost bit flipped on */
 
         /*
           * 1. Zero out MASK, then set MASK's highest order bit equal to one
@@ -80,12 +72,12 @@ namespace IP4Addr
     /* smtopl
      * Subnet mask (as a host order integer) to prefix length conversion.
      */ 
-    plen_t IP4Addr::smtopl(in_addr_t snmask) const
+    int IP4Addr::smtopl(in_addr_t snmask) const
     {
         uint8_t * cur = (uint8_t *) &snmask;
-        plen_t plen = 0;
+        uint32_t plen = 0;
 
-        /* Check # of bits on in each octet */
+        /* Check number of bits flipped on in each octet */
         for (int i = 0; i < 4; i++, cur++) {
             if (*cur == 255) {
                 /* All bits were on */
@@ -131,7 +123,7 @@ namespace IP4Addr
         return std::make_pair(m_snmask.first, m_snmask.second);
     }
 
-    hash_t IP4Addr::getHash() const
+    uint64_t IP4Addr::getHash() const
     {
         if (! isValid())
         {
@@ -141,7 +133,7 @@ namespace IP4Addr
         return m_hash;
     }
 
-    plen_t IP4Addr::getPlen() const
+    uint32_t IP4Addr::getPlen() const
     {
         if (! isValid())
         {
@@ -220,7 +212,7 @@ namespace IP4Addr
 
     /* Set functions */
 
-    bool IP4Addr::setAddr(std::string & addr_s)
+    bool IP4Addr::setAddr(const std::string & addr_s)
     {
         char buf[INET_ADDRSTRLEN];
         strncpy(buf, addr_s.c_str(), sizeof(buf));
@@ -242,7 +234,7 @@ namespace IP4Addr
         return setAddrSuccess();
     }
 
-    bool IP4Addr::setAddr(in_addr_t addr_i)
+    bool IP4Addr::setAddr(const in_addr_t addr_i)
     {
         char buf[INET_ADDRSTRLEN];
 
@@ -257,7 +249,7 @@ namespace IP4Addr
         return setAddrSuccess();
     }
 
-    bool IP4Addr::setSnmask(std::string & snmask_s)
+    bool IP4Addr::setSnmask(const std::string & snmask_s)
     {
         char buf[INET_ADDRSTRLEN];
         strncpy(buf, snmask_s.c_str(), INET_ADDRSTRLEN);
@@ -273,7 +265,7 @@ namespace IP4Addr
         return setMaskSuccess();
     }
 
-    bool IP4Addr::setSnmask(in_addr_t snmask_i)
+    bool IP4Addr::setSnmask(const in_addr_t snmask_i)
     {
         char buf[INET_ADDRSTRLEN];
 
@@ -291,7 +283,7 @@ namespace IP4Addr
     /* Determines whether the argument is a prefix length or a subnet mask
      * and calls setPlen or setSnmask accordingly.
      */
-    bool IP4Addr::setMask(uint32_t mask)
+    bool IP4Addr::setMask(const uint32_t mask)
     {
         if (IP4Addr::isValidPlen(mask))
         {
@@ -307,7 +299,7 @@ namespace IP4Addr
         }
     }
 
-    bool IP4Addr::isValidSnmask(uint32_t mask) const
+    bool IP4Addr::isValidSnmask(const uint32_t mask) const
     {
         if (mask == 0)
         {
@@ -322,7 +314,7 @@ namespace IP4Addr
 
         uint8_t * cur;
         bool seenzero = false;
-        void * last_byte = &mask + 3;
+        const void * last_byte = &mask + 3;
 
         /* For each bit in each octet, check for a 0 followed by a 1.
          * If found, this is not a valid subnet mask. */
@@ -351,14 +343,14 @@ namespace IP4Addr
         }
     }
 
-    bool IP4Addr::setMask(std::string & snmask_s)
+    bool IP4Addr::setMask(const std::string & snmask_s)
     {
         return setSnmask(snmask_s);
     }
 
-    bool IP4Addr::isValidPlen(uint32_t plen) const
+    bool IP4Addr::isValidPlen(const uint32_t plen) const
     {
-        if (plen > 32)
+        if (plen > 32 or plen < 0)
         {
             return false;
         }
@@ -368,7 +360,7 @@ namespace IP4Addr
         }
     }
 
-    bool IP4Addr::setPlen(int plen)
+    bool IP4Addr::setPlen(const uint32_t plen)
     {
         if (! isValidPlen(plen))
         {
@@ -419,7 +411,7 @@ namespace IP4Addr
      */
     void IP4Addr::updateNetInfo()
     {
-        m_hash = makeHash(m_addr.second, (in_addr_t) m_snmask.second);
+        m_hash = makeHash(m_addr.second, m_snmask.second);
         return;
     }
 
@@ -430,19 +422,19 @@ namespace IP4Addr
         setMaskFail();
     }
 
-    IP4Addr::IP4Addr(std::string addr_s, std::string snmask_s)
+    IP4Addr::IP4Addr(const std::string & addr_s, const std::string & snmask_s)
     {
         setAddr(addr_s);
         setMask(snmask_s);
     }
 
-    IP4Addr::IP4Addr(std::string addr_s, uint32_t mask)
+    IP4Addr::IP4Addr(const std::string & addr_s, uint32_t mask)
     {
         setAddr(addr_s);
         setMask(mask);
     }
 
-    IP4Addr::IP4Addr(in_addr_t addr_i, std::string snmask_s)
+    IP4Addr::IP4Addr(in_addr_t addr_i, const std::string & snmask_s)
     {
         setAddr(addr_i);
         setMask(snmask_s);
@@ -458,18 +450,23 @@ namespace IP4Addr
 
     std::ostream & operator<<(std::ostream & os, IP4Addr & ip)
     {
-        if (ip.isValid() == false)
-        {
-            os << "Address is not valid." << std::endl;
-            return os;
-        }
-
-        os << ip.getNetwork().first << "/" << ip.getPlen() << std::endl;
-
-        return os;
+        return os << ip.str();
     }
 
-    void IP4Addr::printAll(std::ostream & os)
+    std::string IP4Addr::str(void)
+    {
+        if (isValid() == false)
+        {
+            return "Address is not valid.\n";
+        }
+
+        /* buf[3] = 2 digit (max) prefix length + null byte */
+        char buf[3];
+        snprintf(buf, 3, "%d", getPlen());
+        return getNetwork().first + "/" + buf;
+    }
+
+    void IP4Addr::printAll(std::ostream & os) const
     {
         if (isValid() == false)
         {
@@ -479,7 +476,7 @@ namespace IP4Addr
 
         os << "IP Address:    " << getAddr().first << " ("
            << getAddr().second << ")" << std::endl
-           << "Prefix length: " << (int) getPlen() << std::endl
+           << "Prefix length: " << getPlen() << std::endl
            << "Subnet Mask:   " << getMask().first << " ("
            << getMask().second << ")" << std::endl
            << "Broadcast:     " << getBroadcast().first << " ("
@@ -492,29 +489,22 @@ namespace IP4Addr
         return;
     }
 
-    /* with_snmask
+    /* withMask
      * Return the network ANDed with a new network mask.
      */
-    in_addr_t IP4Addr::withMask(in_addr_t snmask_i) const
+    in_addr_t IP4Addr::withMask(uint32_t mask) const
     {
-        if (! isValidSnmask(snmask_i)) {
+        /* If given a prefix length, convert to a subnet mask */
+        if (isValidPlen(mask))
+        {
+            mask = pltosm(mask);
+        }
+ 
+        if (! isValidSnmask(mask))
+        {
             return 0;
         }
 
-        return m_addr.second & snmask_i;
-    }
-
-    /* with_snmask
-     * Return the network ANDed with a new network mask.
-     */
-    in_addr_t IP4Addr::withMask(plen_t plen) const
-    {
-        if (plen > 32) {
-            plen = 32;
-        }
-
-        in_addr_t snmask = pltosm(plen);
-
-        return withMask(snmask);
+        return m_addr.second & mask;
     }
 };
