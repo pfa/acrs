@@ -37,7 +37,7 @@ namespace IP4Route
         return m_metric_valid = true;
     }
 
-    bool IP4Route::isValidMetric(int metric)
+    bool IP4Route::isValidMetric(int metric) const
     {
         if (metric > MAX_METRIC || metric < MIN_METRIC)
         {
@@ -47,7 +47,7 @@ namespace IP4Route
         return true;
     }
 
-    int IP4Route::getMetric()
+    int IP4Route::getMetric() const
     {
         if (isValid() == false)
         {
@@ -68,7 +68,7 @@ namespace IP4Route
         return setMetricSuccess();
     }
 
-    bool IP4Route::isValid()
+    bool IP4Route::isValid(void) const
     {
         return m_metric_valid && IP4Addr::isValid();
     }
