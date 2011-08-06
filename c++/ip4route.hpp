@@ -26,12 +26,12 @@ namespace IP4Route
     
         bool setMetricFail();
         bool setMetricSuccess();
-        bool isValidMetric(int metric);
+        bool isValidMetric(int metric) const;
     
     public:
-        int getMetric();
+        int getMetric() const;
         bool setMetric(int metric);
-        bool isValid();
+        bool isValid() const;
     
         /* Constructors */
         IP4Route(void);

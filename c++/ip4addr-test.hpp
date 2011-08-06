@@ -1,6 +1,9 @@
+/* ip4addr-test.hpp */
+
 #ifndef IP4ADDR_TESTS
 #define IP4ADDR_TESTS
 
+#include <arpa/inet.h>
 #include <cpptest.h>
 
 #include "ip4addr.hpp"
@@ -25,12 +28,6 @@ private:
     void goodstr_badsnmask_toohigh(void);
     void goodstr_goodplen30(void);
 
-    /* Helpers */
-    void invalid_addr(IP4Addr::IP4Addr addr);
-    void addr_equals(std::pair<std::string, in_addr_t> ippair,
-                     std::string s,
-                     in_addr_t i);
-
 public:
     IP4AddrTest()
     {
@@ -50,6 +47,12 @@ public:
         TEST_ADD(IP4AddrTest::goodstr_badsnmask_toohigh);
         TEST_ADD(IP4AddrTest::goodstr_goodplen30);
     }
+
+    /* Helpers */
+    void invalid_addr(const IP4Addr::IP4Addr & addr);
+    void addr_equals(const std::pair<std::string, in_addr_t> & ippair,
+                     const std::string & s,
+                     const in_addr_t i);
 };
 
 #endif /* IP4ADDR_TESTS */

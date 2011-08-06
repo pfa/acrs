@@ -1,3 +1,5 @@
+/* ip4addr-test.cpp */
+
 #include <iostream>
 
 #include <cpptest.h>
@@ -6,7 +8,7 @@
 #include "ip4addr.hpp"
 #include "ip4addr-test.hpp"
 
-void IP4AddrTest::invalid_addr(IP4Addr::IP4Addr addr)
+void IP4AddrTest::invalid_addr(const IP4Addr::IP4Addr & addr)
 {
     TEST_ASSERT(addr.isValid() == false);
     TEST_ASSERT(addr.getAddr().first == "");
@@ -22,9 +24,8 @@ void IP4AddrTest::invalid_addr(IP4Addr::IP4Addr addr)
     TEST_ASSERT(addr.getPlen() == 0);
 }
 
-void IP4AddrTest::addr_equals(std::pair<std::string, in_addr_t> ippair,
-                              std::string s,
-                              in_addr_t i)
+void IP4AddrTest::addr_equals(const std::pair<std::string, in_addr_t> & ippair,
+                              const std::string & s, in_addr_t i)
 {
     TEST_ASSERT(ippair.first == s);
     TEST_ASSERT(ippair.second == i);
