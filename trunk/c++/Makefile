@@ -32,4 +32,4 @@ test : run-tests
 	./run-tests
 
 clean :
-	rm *.o
+	rm -f *.o
