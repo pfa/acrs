@@ -41,13 +41,12 @@
 
 #include "acrs4.hpp"
 
-int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
-             char * rts[]);
+int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[]);
 void usage(void);
 
 int main(int argc, char * argv[])
 {
-    std::list<IP4Route::IP4Route> rtlist;
+    Acrs4::Acrs4 summary;
     int startind = 1;
     bool logging = false;
 
@@ -73,20 +72,22 @@ int main(int argc, char * argv[])
         }
     }
 
-    if (get_list(rtlist, argc - startind, &argv[startind]) == false)
+    if (get_list(summary, argc - startind, &argv[startind]) == false)
     {
-        std::cerr << "Bad list." << std::endl;
+        std::cerr << "Bad list. (To enable logging, "
+                     "-l must be the first argument.)" << std::endl;
         return 2;
     }
 
-        Acrs4::Summarize(rtlist, logging, std::cout);
+    summary.setLogging(logging);
+    summary.summarize();
 
-        for (std::list<IP4Route::IP4Route>::iterator iter = rtlist.begin();
-             iter != rtlist.end();
-             iter++)
-        {
-                std::cout << *iter << std::endl;
-        }
+    for (std::list<IP4Route::IP4Route>::iterator iter = summary.begin();
+         iter != summary.end();
+         iter++)
+    {
+        std::cout << *iter << std::endl;
+    }
 
     return 0;
 }
@@ -99,8 +100,7 @@ void usage(void)
     return;
 }
 
-int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
-             char * rts[])
+int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
 {
     for (int i = 0; i < numrts; i++)
     {
@@ -109,7 +109,6 @@ int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
         char ipstr[INET_ADDRSTRLEN];
         char * prefix = rts[i];
 
-        /* Validation */
         ptr1 = strtok_r(prefix, "/", &saveptr);
         if (ptr1 == 0)
         {
@@ -130,7 +129,7 @@ int get_list(std::list<IP4Route::IP4Route> & rtlist, int numrts,
         {
             return false;
         }
-        rtlist.insert(rtlist.end(), newrt);
+        summary.insert(summary.end(), newrt);
     }
 
     return true;
