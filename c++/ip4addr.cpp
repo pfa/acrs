@@ -428,10 +428,26 @@ namespace IP4Addr
         setMask(snmask_s);
     }
 
-    IP4Addr::IP4Addr(const std::string & addr_s, uint32_t mask)
+    IP4Addr::IP4Addr(const std::string & addr_s, uint32_t mask,
+                     MaskType::MaskType type)
     {
         setAddr(addr_s);
-        setMask(mask);
+
+        switch (type)
+        {
+        case MaskType::UNSPEC:
+            setMask(mask);
+            break;
+        case MaskType::PLEN:
+            setPlen(mask);
+            break;
+        case MaskType::SNMASK:
+            setSnmask(mask);
+            break;
+        default:
+            setMaskFail();
+            break;
+        }
     }
 
     IP4Addr::IP4Addr(in_addr_t addr_i, const std::string & snmask_s)
@@ -440,10 +456,25 @@ namespace IP4Addr
         setMask(snmask_s);
     }
 
-    IP4Addr::IP4Addr(in_addr_t addr_i, uint32_t mask)
+    IP4Addr::IP4Addr(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type)
     {
         setAddr(addr_i);
-        setMask(mask);
+
+        switch (type)
+        {
+        case MaskType::UNSPEC:
+            setMask(mask);
+            break;
+        case MaskType::PLEN:
+            setPlen(mask);
+            break;
+        case MaskType::SNMASK:
+            setSnmask(mask);
+            break;
+        default:
+            setMaskFail();
+            break;
+        }
     }
 
     /* Other */
@@ -457,7 +488,7 @@ namespace IP4Addr
     {
         if (isValid() == false)
         {
-            return "Address is not valid.\n";
+            return "Address is not valid.";
         }
 
         /* buf[3] = 2 digit (max) prefix length + null byte */

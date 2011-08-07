@@ -35,10 +35,14 @@ namespace IP4Route
     
         /* Constructors */
         IP4Route(void);
-        IP4Route(std::string addr_s, uint32_t mask, int metric = 0);
-        IP4Route(std::string addr_s, std::string snmask_s, int metric = 0);
-        IP4Route(in_addr_t addr_i, uint32_t mask, int metric = 0);
-        IP4Route(in_addr_t addr_i, std::string snmask_s, int metric = 0);
+        IP4Route(const std::string & addr_s, uint32_t mask,
+                 MaskType::MaskType type = MaskType::UNSPEC, int metric = 0);
+        IP4Route(const std::string & addr_s, const std::string & snmask_s,
+                 int metric = 0);
+        IP4Route(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type = MaskType::UNSPEC,
+                 int metric = 0);
+        IP4Route(in_addr_t addr_i, const std::string & snmask_s,
+                 int metric = 0);
 
         virtual ~IP4Route() {};
     

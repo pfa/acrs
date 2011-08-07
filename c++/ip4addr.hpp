@@ -5,6 +5,16 @@
 #include <arpa/inet.h>
 #include <string>
 
+namespace MaskType
+{
+    enum MaskType
+    {
+        PLEN,
+        SNMASK,
+        UNSPEC
+    };
+};
+
 namespace IP4Addr
 {
     class IP4Addr
@@ -43,16 +53,16 @@ namespace IP4Addr
         bool setAddr(const std::string & addr_s);
         bool setAddr(const in_addr_t addr_i);
         bool setMask(const std::string & snmask_s);
-        bool setMask(const unsigned int snmask_i);
+        bool setMask(const in_addr_t snmask_i);
         bool setSnmask(const std::string & snmask_s);
         bool setSnmask(const in_addr_t snmask_i);
         bool setPlen(const uint32_t plen);
 
         /* Constructors */
         IP4Addr(void);
-        IP4Addr(const std::string & addr_s, uint32_t mask);
+        IP4Addr(const std::string & addr_s, uint32_t mask, MaskType::MaskType type = MaskType::UNSPEC);
         IP4Addr(const std::string & addr_s, const std::string & snmask_s);
-        IP4Addr(in_addr_t addr_i, uint32_t mask);
+        IP4Addr(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type = MaskType::UNSPEC);
         IP4Addr(in_addr_t addr_i, const std::string & snmask_s);
 
         virtual ~IP4Addr() {};
@@ -63,6 +73,7 @@ namespace IP4Addr
         void printAll(std::ostream & os) const;
         std::string str(void);
         friend std::ostream & operator<<(std::ostream & os, IP4Addr & ip);
+
     };
 }
 

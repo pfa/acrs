@@ -80,26 +80,27 @@ namespace IP4Route
         setMetricFail();
     }
 
-    IP4Route::IP4Route(std::string addr_s, uint32_t mask, int metric) :
-                       IP4Addr(addr_s, mask)
+    IP4Route::IP4Route(const std::string & addr_s, uint32_t mask,
+                       MaskType::MaskType type, int metric)
+                       : IP4Addr(addr_s, mask, type)
     {
         setMetric(metric);
     }
 
-    IP4Route::IP4Route(std::string addr_s, std::string snmask_s,
+    IP4Route::IP4Route(const std::string & addr_s, const std::string & snmask_s,
                        int metric) : IP4Addr(addr_s, snmask_s)
     {
         setMetric(metric);
     }
 
-    IP4Route::IP4Route(in_addr_t addr_i, uint32_t mask, int metric) :
-                       IP4Addr(addr_i, mask)
+    IP4Route::IP4Route(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type,
+                       int metric) : IP4Addr(addr_i, mask, type)
     {
         setMetric(metric);
     }
 
-    IP4Route::IP4Route(in_addr_t addr_i, std::string snmask_s, int metric) :
-                       IP4Addr(addr_i, snmask_s)
+    IP4Route::IP4Route(in_addr_t addr_i, const std::string & snmask_s,
+                       int metric) : IP4Addr(addr_i, snmask_s)
     {
         setMetric(metric);
     }

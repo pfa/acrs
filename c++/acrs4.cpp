@@ -181,7 +181,7 @@ namespace Acrs4
                 }
 
                 /* Overlapping prefixes */
-                log("*  Removing '" + cur->str() + "', which faills within '" +
+                log("*   Removing '" + cur->str() + "', which falls within '" +
                     prev->str() + "'\n");
 
                 erase(cur);
@@ -213,11 +213,6 @@ namespace Acrs4
         IP4Route::IP4Route * prev = &(*cur);
         for (cur++; cur != end(); prev = &(*cur), cur++)
         {
-            if (! prev)
-            {
-                continue;
-            }
-
             /* Prefix lengths must match */
             if (prev->getPlen() != cur->getPlen())
             {
@@ -230,15 +225,29 @@ namespace Acrs4
                 continue;
             }
 
-            if (prev->getBroadcast().second + 1 != cur->getNetwork().second)
+            /* Detect integer overflow */
+            uint32_t newbc = prev->getBroadcast().second + 1;
+            if (newbc == 0)
             {
                 continue;
+            }
+
+            /* Broadcast of first, plus one, must be equal to network
+             * of second */
+            if (newbc != cur->getNetwork().second)
+            {
+                continue;
+            }
+
+            if (prev->getPlen() == 0)
+            {
+                
             }
 
             /* Net address of the resulting network must be equal
              * to net address of lowest network. */
             IP4Route::IP4Route possible(prev->getNetwork().first,
-                                        prev->getPlen() - 1);
+                                        prev->getPlen() - 1, MaskType::PLEN);
             if (possible.getNetwork().second == prev->getNetwork().second)
             {
                 /* Can summarize these */
