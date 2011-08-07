@@ -51,7 +51,6 @@ int main(int argc, char * argv[])
 {
     Acrs4::Acrs4 summary;
     int startind = 1;
-    bool logging = false;
     char c;
 
     if (argc == 1)
@@ -79,13 +78,20 @@ int main(int argc, char * argv[])
         }
     }
 
-    if (get_list(summary, argc - startind, &argv[startind]) == false)
+    if (argc - startind == 0)
     {
-        std::cerr << "Bad list." << std::endl;
+        usage();
+        std::cerr << "Error: One or more prefixes required." << std::endl;
         return 2;
     }
 
-    summary.summarize();
+    if (get_list(summary, argc - startind, &argv[startind]) == false)
+    {
+        std::cerr << "Error: Bad list." << std::endl;
+        return 2;
+    }
+
+    int summarized = summary.summarize();
 
     for (std::list<IP4Route::IP4Route>::iterator iter = summary.begin();
          iter != summary.end();
@@ -94,7 +100,7 @@ int main(int argc, char * argv[])
         std::cout << *iter << std::endl;
     }
 
-    return 0;
+    return summarized;
 }
 
 void usage(void)
@@ -131,7 +137,7 @@ int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
         
         uint8_t preflen = atoi(ptr2);
         int metric = 0;
-        IP4Route::IP4Route newrt(ipstr, preflen, metric);
+        IP4Route::IP4Route newrt(ipstr, preflen, MaskType::PLEN);
         if (newrt.isValid() == false)
         {
             return false;

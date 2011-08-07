@@ -7,7 +7,6 @@
 #include <cpptest.h>
 
 #include "ip4addr-test.hpp"
-
 #include "ip4route.hpp"
 
 class IP4RouteTest : public IP4AddrTest
