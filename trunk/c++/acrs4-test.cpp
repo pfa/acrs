@@ -1,7 +1,6 @@
 /* acrs4-test.cpp */
 
 #include <cpptest.h>
-#include <iostream>
 
 #include "acrs4.hpp"
 #include "acrs4-test.hpp"
