@@ -268,7 +268,7 @@ namespace Acrs4
          */
         if (summarized == true)
         {
-            summarizeOverlap();
+            summarizeMain();
             return true;
         }
         else
