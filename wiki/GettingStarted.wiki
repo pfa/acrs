@@ -69,8 +69,8 @@ You can download the latest source either from the tarball on the Downloads tab 
 == From the tar file ==
 
 Steps:
-  # Download the tarball
   # Install a C++ compiler
+  # Download the tarball
   # Extract the source code
   # Run make
 
@@ -78,6 +78,8 @@ For Debian/Ubuntu systems:
 
 {{{
 apt-get install g++
+wget http://acrs.googlecode.com/files/acrs-r75.tar.gz # Replace r75 with the latest version
+tar -xzf acrs-r75.tar.gz
 cd acrs/c++
 make
 ./acrs-demo
