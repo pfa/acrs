@@ -37,5 +37,11 @@ all: $(PROGRAMS)
 test: run-tests
 	./run-tests
 
+gcov: CXXFLAGS += -fprofile-arcs -ftest-coverage
+gcov: all
+
 clean:
 	rm -f *.o
+
+gcov-clean:
+	rm -rf usr bits ext home i486-linux-gnu *.gcda *gcno *.css *.html *.png *.info

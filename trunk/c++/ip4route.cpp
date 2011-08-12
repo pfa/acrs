@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 
 #include "ip4addr.hpp"
 #include "ip4route.hpp"
@@ -111,17 +112,20 @@ namespace IP4Route
         os << "Metric: " << getMetric() << std::endl;
     }
 
-    std::ostream & operator<<(std::ostream & os, IP4Route & rt)
+    std::string IP4Route::str(void)
     {
-        if (rt.isValid() == false)
+        if (isValid() == false)
         {
-            os << "Route is not valid." << std::endl;
-            return os;
+            return "Route is not valid.";
         }
 
-        os << rt.getNetwork().first << "/" << rt.getPlen() << " in "
-           << rt.getMetric();
+        std::stringstream metric;
+        metric << getMetric();
+        return IP4Addr::str() + " in " + metric.str();
+    }
 
-        return os;
+    std::ostream & operator<<(std::ostream & os, IP4Route & rt)
+    {
+        return os << rt.str();
     }
 }

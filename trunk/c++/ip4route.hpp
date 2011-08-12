@@ -48,6 +48,7 @@ namespace IP4Route
     
         void printAll(std::ostream & os);
         friend std::ostream & operator<<(std::ostream & os, IP4Route & rt);
+        std::string str(void);
     };
 }
 
