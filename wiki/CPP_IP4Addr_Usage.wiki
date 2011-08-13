@@ -105,7 +105,7 @@ bool setPlen(const uint32_t plen);
 
 == Other methods ==
 
-Older method prototypes:
+Other method prototypes:
 
 isValid() allows you to check if the supplied address and mask were both valid.
 
