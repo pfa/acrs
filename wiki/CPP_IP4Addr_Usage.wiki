@@ -1,0 +1,126 @@
+#summary Using the C++ IP4Addr class
+
+= Introduction =
+
+The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form).
+
+Example usage:
+
+{{{
+#include <iostream>
+
+#include "ip4addr.hpp"
+
+int main(void)
+{
+    IP4Addr::IP4Addr addr("192.168.1.23", 24);  // string and int (prefix length)
+    IP4Addr::IP4Addr other_addr("192.168.1.48", 16777215);  // string and int (subnet mask)
+    IP4Addr::IP4Addr another_addr(1208068288, "255.255.255.0"); // ints are specified in host order, extracted in network order later
+
+    if (addr.isValid() == false)
+    {
+        std::cout << "Address is not valid (but let's print things anyway)" << std::endl;
+    }
+
+    /* If the address is not valid, string results below are empty (""), and all integers are 0 */
+
+    std::cout << "Network: " << addr.getNetwork().first << std::endl;  // Get network in string form
+    std::cout << "Netmask: " << addr.getMask().first << std::endl;  // Get subnet mask in string form
+
+    unsigned int broadcast = addr.getAddr().second; // Get the IP address in network order
+
+    std::cout << addr.str() << std::endl;  // .str() returns "192.168.1.23/24"
+    addr.printAll(std::cout); // Prints all info to the specified ostream
+
+    return 0;
+}
+}}}
+
+= Public member functions =
+== Constructors ==
+
+An IP4Addr is made up of an IP address and a subnet mask. These can be specified as a string in dotted decimal form or as host order integers. The mask argument can also be treated as a prefix length.
+
+There is a third optional argument specifying the type of mask being used (either a subnet mask or prefix length). If this is not used, the library will first attempt to use the mask as a prefix length. If the mask argument is not a valid prefix length, the library will attempt to use it as a subnet mask.
+
+Constructor prototypes:
+
+{{{
+IP4Addr(void);
+IP4Addr(const std::string & addr_s, uint32_t mask, MaskType::MaskType type = MaskType::UNSPEC);
+IP4Addr(const std::string & addr_s, const std::string & snmask_s);
+IP4Addr(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type = MaskType::UNSPEC);
+IP4Addr(in_addr_t addr_i, const std::string & snmask_s);
+}}}
+
+== Get methods ==
+
+After constructing an IP4Addr object, the following data can be obtained in string form or as a network order integer:
+
+  * Address
+  * Subnet mask
+  * Broadcast address
+  * Host mask
+  * Network address
+
+Results are returned in a pair (std::pair<std::string>, in_addr_t>). To access the string member, use .first on the returned pair. To access the integer member, use .second on the pair. Consider the following snippet:
+
+{{{
+IP4Addr addr("192.168.1.1", 24);
+
+std::pair<std::string, in_addr_t> the_pair = addr.getNetwork();
+std::string s = addr.getNetwork().first;
+int i = addr.getNetwork().second;
+}}}
+
+A "hash" -- really a 64 bit integer holding the address and mask -- and the prefix length as an integer are also accessible.
+
+Get method prototypes:
+
+{{{
+std::pair<std::string, in_addr_t> getAddr(void) const;
+std::pair<std::string, in_addr_t> getMask(void) const;
+std::pair<std::string, in_addr_t> getBroadcast(void) const;
+std::pair<std::string, in_addr_t> getHostmask(void) const;
+std::pair<std::string, in_addr_t> getNetwork(void) const;
+uint64_t getHash(void) const;
+uint32_t getPlen() const;
+}}}
+
+== Set methods ==
+
+The set methods are similar to the constructor methods. To set the mask, use setSnmask() to set from a subnet mask, setPlen() to set from a prefix length, or setMask() to have the library determine which to use.
+
+Set method prototypes:
+
+{{{
+bool setAddr(const std::string & addr_s);
+bool setAddr(const in_addr_t addr_i);
+bool setMask(const std::string & snmask_s);
+bool setMask(const in_addr_t snmask_i);
+bool setSnmask(const std::string & snmask_s);
+bool setSnmask(const in_addr_t snmask_i);
+bool setPlen(const uint32_t plen);
+}}}
+
+== Other methods ==
+
+Older method prototypes:
+
+isValid() allows you to check if the supplied address and mask were both valid.
+
+withMask() takes the IP address of an object and ANDs it with the supplied network mask, then returns the result as a network order integer.
+
+printAll() prints all derived network data to the given ostream (e.g. std::cout)
+
+str() prints a basic string representing the address (e.g. "192.168.1.1/24"). If the address is invalid, it returns a message saying so
+
+The operator<<() method calls .str() and prints the result the provided ostream
+
+{{{
+bool isValid(void) const;
+in_addr_t withMask(uint32_t mask) const;
+void printAll(std::ostream & os) const;
+std::string str(void);
+friend std::ostream & operator<<(std::ostream & os, IP4Addr & ip);
+}}}
