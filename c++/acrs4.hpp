@@ -19,6 +19,7 @@ namespace Acrs4
     private:
         bool m_logging;
         std::ostream & m_os;
+        int m_main_recurse_count;
 
         bool summarizeOverlap(void);
         bool summarizeMain(void);

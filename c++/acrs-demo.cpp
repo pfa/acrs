@@ -134,7 +134,16 @@ int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
         {
             return false;
         }
-        
+
+        /* Make sure prefix length is actually a number, otherwise atoi will return 0 */
+        for (char * c = ptr2; *c != 0; c++)
+        {
+            if (isdigit(*c) == false)
+            {
+                return false;
+            }
+        }
+
         uint8_t preflen = atoi(ptr2);
         int metric = 0;
         IP4Route::IP4Route newrt(ipstr, preflen, MaskType::PLEN);

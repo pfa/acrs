@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <string>
 
+#include <sstream>
+
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -123,6 +125,11 @@ namespace Acrs4
 
     bool Acrs4::summarize(void)
     {
+        if (getLogging() == true)
+        {
+            m_main_recurse_count = 0;
+        }
+
         log("* Main summarization:\n");
         bool summarized1 = summarizeMain();
 
@@ -202,6 +209,11 @@ namespace Acrs4
 
         sort(acrsCmp);
 
+        m_main_recurse_count++;
+        std::stringstream rc;
+        rc << m_main_recurse_count;
+        log("*   Pass " + rc.str() + "\n");
+
         /* prev starts at element 0, cur starts at element 1 */
         std::list<IP4Route::IP4Route>::iterator cur = begin();
 
@@ -251,7 +263,7 @@ namespace Acrs4
             if (possible.getNetwork().second == prev->getNetwork().second)
             {
                 /* Can summarize these */
-                log("*   Summarized '" + prev->str() + "' and '" +
+                log("*     Summarized '" + prev->str() + "' and '" +
                     cur->str() + "' into '");
 
                 erase(cur);

@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <sstream>
 
 #include <arpa/inet.h>
 #include <inttypes.h>
@@ -491,10 +492,9 @@ namespace IP4Addr
             return "Address is not valid.";
         }
 
-        /* buf[3] = 2 digit (max) prefix length + null byte */
-        char buf[3];
-        snprintf(buf, 3, "%d", getPlen());
-        return getNetwork().first + "/" + buf;
+        std::stringstream plen;
+        plen << getPlen();
+        return getNetwork().first + "/" + plen.str();
     }
 
     void IP4Addr::printAll(std::ostream & os) const
