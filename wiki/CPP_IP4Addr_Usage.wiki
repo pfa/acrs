@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form).
+The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form). It acts as a convenient front end to the inet_pton/inet_ntop class of functions.
 
 Example usage:
 
@@ -105,8 +105,6 @@ bool setPlen(const uint32_t plen);
 
 == Other methods ==
 
-Other method prototypes:
-
 isValid() allows you to check if the supplied address and mask were both valid.
 
 withMask() takes the IP address of an object and ANDs it with the supplied network mask, then returns the result as a network order integer.
@@ -116,6 +114,8 @@ printAll() prints all derived network data to the given ostream (e.g. std::cout)
 str() prints a basic string representing the address (e.g. "192.168.1.1/24"). If the address is invalid, it returns a message saying so
 
 The operator<<() method calls .str() and prints the result the provided ostream
+
+Other method prototypes:
 
 {{{
 bool isValid(void) const;
