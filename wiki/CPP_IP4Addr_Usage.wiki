@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form). It acts as a convenient front end to the inet_pton/inet_ntop class of functions.
+The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form). It acts as a convenient front end to the inet_pton/inet_ntop class of functions and provides easy access to an addresses network ID, broadcast address, netmask, etc., in string and integer form.
 
 Example usage:
 
@@ -63,17 +63,17 @@ After constructing an IP4Addr object, the following data can be obtained in stri
   * Host mask
   * Network address
 
-Results are returned in a pair (std::pair<std::string>, in_addr_t>). To access the string member, use .first on the returned pair. To access the integer member, use .second on the pair. Consider the following snippet:
+The prefix length is available as an integer. A "hash" -- really a 64 bit integer holding the address and mask -- is also available.
+
+The return value for all of the get*() functions except the prefix length and hash is a pair containing a string and 32 bit integer (std::pair<std::string>, in_addr_t>). To access the string member, use .first on the returned pair. To access the integer member, use .second on the pair. Consider the following snippet:
 
 {{{
 IP4Addr addr("192.168.1.1", 24);
 
-std::pair<std::string, in_addr_t> the_pair = addr.getNetwork();
-std::string s = addr.getNetwork().first;
-int i = addr.getNetwork().second;
+std::pair<std::string, in_addr_t> the_pair = addr.getNetwork();  // returns a pair
+std::string s = addr.getNetwork().first;  // returns "192.168.1.0"
+int i = addr.getNetwork().second;  // returns 3232235776 (network order)
 }}}
-
-A "hash" -- really a 64 bit integer holding the address and mask -- and the prefix length as an integer are also accessible.
 
 Get method prototypes:
 
