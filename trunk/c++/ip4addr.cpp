@@ -46,8 +46,7 @@ namespace IP4Addr
         return ((addr << 31) + mask);
     }
 
-    /* pltosn
-     *
+    /* pltosm
      * Prefix length to subnet mask.
      */
     in_addr_t IP4Addr::pltosm(uint32_t plen) const
@@ -58,14 +57,14 @@ namespace IP4Addr
             return 0;
         }
 
-        uint32_t highbit = 1 << 31;  /* Leftmost bit flipped on */
+        uint32_t highbit = 1 << 31;  /* Highest order bit flipped on */
 
-        /*
-          * 1. Zero out MASK, then set MASK's highest order bit equal to one
-          * 2. Right shift MASK by one less than the PREFIX LENGTH
-          * 3. Subtract 1 from MASK; now all the bits we want are flipped to 0
-          * 4. Get the one's complement of MASK (flip all 0s to 1s, vice versa)
-          * 5. MASK is now in network byte order; convert it to host order
+         /*
+          * 1. Zero out mask, then set mask's highest order bit equal to one
+          * 2. Right shift mask by one less than the prefix length
+          * 3. Subtract 1 from mask; now all the bits we want are flipped to 0
+          * 4. Get the one's complement of mask (flip all 0s to 1s, vice versa)
+          * 5. mask is now in network byte order; convert it to host order
           */
         return ntohl(~((highbit >> plen - 1) - 1));
     }
@@ -104,24 +103,38 @@ namespace IP4Addr
 
     /* Get functions */
 
-    std::pair<std::string, in_addr_t> IP4Addr::getAddr(void) const
+    std::pair<std::string, in_addr_t> IP4Addr::getAddr(Order order) const
     {
         if (! isValid())
         {
             return std::make_pair("", 0);
         }
 
-        return std::make_pair(m_addr.first, m_addr.second);
+        if (order == HBO)
+        {
+            return std::make_pair(m_addr.first, ntohl(m_addr.second));
+        }
+        else
+        {
+            return m_addr;
+        }
     }
 
-    std::pair<std::string, in_addr_t> IP4Addr::getMask(void) const
+    std::pair<std::string, in_addr_t> IP4Addr::getMask(Order order) const
     {
         if (! isValid())
         {
             return std::make_pair("", 0);
         }
 
-        return std::make_pair(m_snmask.first, m_snmask.second);
+        if (order == HBO)
+        {
+            return std::make_pair(m_snmask.first, ntohl(m_snmask.second));
+        }
+        else
+        {
+            return m_snmask;
+        }
     }
 
     uint64_t IP4Addr::getHash() const
@@ -144,10 +157,7 @@ namespace IP4Addr
         return m_plen;
     }
 
-    /* Gives both the std::string and integer (NBO) representation of a
-     * broadcast address.
-     */
-    std::pair<std::string, in_addr_t> IP4Addr::getBroadcast(void) const
+    std::pair<std::string, in_addr_t> IP4Addr::getBroadcast(Order order) const
     {
         in_addr_t bc;
         std::string bcstr;
@@ -163,10 +173,15 @@ namespace IP4Addr
         inet_ntop(AF_INET, &hboBc, buf, INET_ADDRSTRLEN);
         bcstr = buf;
 
+        if (order == HBO)
+        {
+            bc = ntohl(bc);
+        }
+
         return std::make_pair(bcstr, bc);
     }
 
-    std::pair<std::string, in_addr_t> IP4Addr::getHostmask(void) const
+    std::pair<std::string, in_addr_t> IP4Addr::getHostmask(Order order) const
     {
         in_addr_t hmask;
         std::string hmaskstr;
@@ -183,10 +198,15 @@ namespace IP4Addr
         inet_ntop(AF_INET, &hboHmask, buf, INET_ADDRSTRLEN);
         hmaskstr = buf;
 
+        if (order == HBO)
+        {
+            hmask = ntohl(hmask);
+        }
+
         return std::make_pair(hmaskstr, hmask);
     }
 
-    std::pair<std::string, in_addr_t> IP4Addr::getNetwork(void) const
+    std::pair<std::string, in_addr_t> IP4Addr::getNetwork(Order order) const
     {
         in_addr_t net;
         char buf[INET_ADDRSTRLEN];
@@ -202,6 +222,11 @@ namespace IP4Addr
         int hboNet = ntohl(net);
         inet_ntop(AF_INET, &hboNet, buf, INET_ADDRSTRLEN);
         netstr = buf;
+
+        if (order == HBO)
+        {
+            net = ntohl(net);
+        }
 
         return std::make_pair(netstr, net);
     }
@@ -235,9 +260,14 @@ namespace IP4Addr
         return setAddrSuccess();
     }
 
-    bool IP4Addr::setAddr(const in_addr_t addr_i)
+    bool IP4Addr::setAddr(in_addr_t addr_i, Order order)
     {
         char buf[INET_ADDRSTRLEN];
+
+        if (order == NBO)
+        {
+            addr_i = ntohl(addr_i);
+        }
 
         if (! (inet_ntop(AF_INET, &addr_i, buf, INET_ADDRSTRLEN)))
         {
@@ -266,9 +296,14 @@ namespace IP4Addr
         return setMaskSuccess();
     }
 
-    bool IP4Addr::setSnmask(const in_addr_t snmask_i)
+    bool IP4Addr::setSnmask(in_addr_t snmask_i, Order order)
     {
         char buf[INET_ADDRSTRLEN];
+
+        if (order == NBO)
+        {
+            snmask_i = ntohl(snmask_i);
+        }
 
         if (! (inet_ntop(AF_INET, &snmask_i, buf, INET_ADDRSTRLEN)))
         {
@@ -416,7 +451,7 @@ namespace IP4Addr
         return;
     }
 
-    /* CTORs -- as above */
+    /* Constructors */
     IP4Addr::IP4Addr(void)
     {
         setAddrFail();
@@ -430,20 +465,20 @@ namespace IP4Addr
     }
 
     IP4Addr::IP4Addr(const std::string & addr_s, uint32_t mask,
-                     MaskType::MaskType type)
+                     MaskType type, Order order)
     {
         setAddr(addr_s);
 
         switch (type)
         {
-        case MaskType::UNSPEC:
+        case UNSPEC:
             setMask(mask);
             break;
-        case MaskType::PLEN:
+        case PLEN:
             setPlen(mask);
             break;
-        case MaskType::SNMASK:
-            setSnmask(mask);
+        case SNMASK:
+            setSnmask(mask, order);
             break;
         default:
             setMaskFail();
@@ -457,20 +492,21 @@ namespace IP4Addr
         setMask(snmask_s);
     }
 
-    IP4Addr::IP4Addr(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type)
+    IP4Addr::IP4Addr(in_addr_t addr_i, uint32_t mask, MaskType type,
+                     Order order)
     {
         setAddr(addr_i);
 
         switch (type)
         {
-        case MaskType::UNSPEC:
+        case UNSPEC:
             setMask(mask);
             break;
-        case MaskType::PLEN:
+        case PLEN:
             setPlen(mask);
             break;
-        case MaskType::SNMASK:
-            setSnmask(mask);
+        case SNMASK:
+            setSnmask(mask, order);
             break;
         default:
             setMaskFail();
@@ -494,7 +530,7 @@ namespace IP4Addr
 
         std::stringstream plen;
         plen << getPlen();
-        return getNetwork().first + "/" + plen.str();
+        return getAddr().first + "/" + plen.str();
     }
 
     void IP4Addr::printAll(std::ostream & os) const

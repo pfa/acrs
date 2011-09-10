@@ -5,18 +5,18 @@
 #include "acrs4.hpp"
 #include "acrs4-test.hpp"
 
-void Acrs4Test::no_routes(void)
+void AcrsTest::no_routes(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     bool summarized = summary.summarize();
 
     TEST_ASSERT(summarized == false);
     TEST_ASSERT(summary.empty() == true);
 }
 
-void Acrs4Test::one_good_route(void)
+void AcrsTest::one_good_route(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     IP4Route::IP4Route rt("192.168.1.0", 24);
 
     summary.push_front(rt);
@@ -26,9 +26,9 @@ void Acrs4Test::one_good_route(void)
     TEST_ASSERT(summary.begin()->getMask() == rt.getMask());
 }
 
-void Acrs4Test::one_bad_route(void)
+void AcrsTest::one_bad_route(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     IP4Route::IP4Route rt("256.256.256.256", 24);
 
     summary.push_front(rt);
@@ -37,9 +37,9 @@ void Acrs4Test::one_bad_route(void)
     TEST_ASSERT(summary.empty() == false);
 }
 
-void Acrs4Test::lower_not_possible(void)
+void AcrsTest::lower_not_possible(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     IP4Route::IP4Route rt1("192.168.1.1", 32);
     IP4Route::IP4Route rt2("192.168.1.2", 32);
 
@@ -54,9 +54,9 @@ void Acrs4Test::lower_not_possible(void)
     TEST_ASSERT(summary.back().str() == rt2.str());
 }
 
-void Acrs4Test::basic_overlap(void)
+void AcrsTest::basic_overlap(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     IP4Route::IP4Route rt1("192.168.1.1", 32);
     IP4Route::IP4Route rt2("192.168.1.1", 32);
 
@@ -69,9 +69,9 @@ void Acrs4Test::basic_overlap(void)
     TEST_ASSERT(summary.front().str() == rt1.str());
 }
 
-void Acrs4Test::basic_main(void)
+void AcrsTest::basic_main(void)
 {
-    Acrs4::Acrs4 summary;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
     IP4Route::IP4Route rt1("192.168.1.0", 32);
     IP4Route::IP4Route rt2("192.168.1.1", 32);
 

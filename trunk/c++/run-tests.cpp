@@ -8,7 +8,7 @@ int main(void)
 {
     IP4AddrTest ip4addr_tests;
     IP4RouteTest ip4rt_tests;
-    Acrs4Test acrs4_tests;
+    AcrsTest acrs4_tests;
 
     Test::TextOutput output(Test::TextOutput::Verbose);
 

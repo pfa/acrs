@@ -2,14 +2,14 @@ CXX := g++
 CXXFLAGS := -g
 PROGRAMS := run-tests acrs-demo
 
-acrs-demo: acrs-demo.o ip4addr.o ip4route.o acrs4.o
-	$(CXX) $(CXXFLAGS) -o acrs-demo acrs-demo.o ip4addr.o ip4route.o acrs4.o
+acrs-demo: acrs-demo.o ip4addr.o ip4route.o
+	$(CXX) $(CXXFLAGS) -o acrs-demo acrs-demo.o ip4addr.o ip4route.o
 
-run-tests: run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o acrs4.o
-	$(CXX) $(CXXFLAGS) -o run-tests run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o acrs4.o -lcpptest
+run-tests: run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o
+	$(CXX) $(CXXFLAGS) -o run-tests run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o -lcpptest
 
-acrs4.o: acrs4.cpp acrs4.hpp ip4route.hpp ip4addr.hpp
-	$(CXX) $(CXXFLAGS) -c acrs4.cpp
+acrs4.hpp.gch: acrs4.hpp ip4route.hpp ip4addr.hpp
+	$(CXX) $(CXXFLAGS) -c acrs4.hpp
 
 acrs-demo.o: acrs-demo.cpp acrs4.hpp ip4route.hpp ip4addr.hpp
 	$(CXX) $(CXXFLAGS) -c acrs-demo.cpp
