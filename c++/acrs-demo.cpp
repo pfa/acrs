@@ -28,6 +28,8 @@
  *
  * 10.0.0.0/24 in 0
  *
+ * Use -l to enable logging.
+ *
  * At the moment, metrics cannot be passed to acrs using this parser. All
  * routes are considered to have equal metrics.
  *
@@ -44,20 +46,15 @@
 
 #define OPTIONS "lh"
 
-int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[]);
+int get_list(Acrs::Acrs<IP4Route::IP4Route> & summary,
+             int numrts, char * rts[]);
 void usage(void);
 
 int main(int argc, char * argv[])
 {
-    Acrs4::Acrs4 summary;
-    int startind = 1;
+    Acrs::Acrs<IP4Route::IP4Route> summary;
+    extern int optind;
     char c;
-
-    if (argc == 1)
-    {
-        usage();
-        return 2;
-    }
 
     while ((c = getopt(argc, argv, OPTIONS)) != -1)
     {
@@ -65,12 +62,8 @@ int main(int argc, char * argv[])
         {
             case 'l':
                 summary.setLogging(true);
-                startind += 1;
                 break;
-            case 'h':
-                usage();
-                return 2;
-                break;
+            case 'h': /* Fall through */
             default:
                 usage();
                 return 2;
@@ -78,14 +71,14 @@ int main(int argc, char * argv[])
         }
     }
 
-    if (argc - startind == 0)
+    if (argc - optind == 0)
     {
         usage();
         std::cerr << "Error: One or more prefixes required." << std::endl;
         return 2;
     }
 
-    if (get_list(summary, argc - startind, &argv[startind]) == false)
+    if (get_list(summary, argc - optind, &argv[optind]) == false)
     {
         std::cerr << "Error: Bad list." << std::endl;
         return 2;
@@ -106,14 +99,14 @@ int main(int argc, char * argv[])
 void usage(void)
 {
     std::cerr << "Usage: acrs-demo [-l] <PREFIX> [PREFIX ...]" << std::endl
-              << "PREFIX is an IPv4 address and mask in CIDR form (e.g. "
+              << "       PREFIX is an IPv4 address and mask in CIDR form (e.g. "
               << "192.168.1.1/24)" << std::endl
-              << "Use -l to enable logging"
+              << "       Use -l to enable logging"
               << std::endl;
     return;
 }
 
-int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
+int get_list(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts, char * rts[])
 {
     for (int i = 0; i < numrts; i++)
     {
@@ -135,7 +128,9 @@ int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
             return false;
         }
 
-        /* Make sure prefix length is actually a number, otherwise atoi will return 0 */
+        /* Make sure prefix length is actually a number,
+         * otherwise atoi will return 0 (would convert an invalid length into
+         * a valid one) */
         for (char * c = ptr2; *c != 0; c++)
         {
             if (isdigit(*c) == false)
@@ -146,7 +141,7 @@ int get_list(Acrs4::Acrs4 & summary, int numrts, char * rts[])
 
         uint8_t preflen = atoi(ptr2);
         int metric = 0;
-        IP4Route::IP4Route newrt(ipstr, preflen, MaskType::PLEN);
+        IP4Route::IP4Route newrt(ipstr, preflen, IP4Addr::IP4Addr::PLEN);
         if (newrt.isValid() == false)
         {
             return false;

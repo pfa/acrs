@@ -82,8 +82,15 @@ namespace IP4Route
     }
 
     IP4Route::IP4Route(const std::string & addr_s, uint32_t mask,
-                       MaskType::MaskType type, int metric)
+                       IP4Addr::MaskType type, int metric)
                        : IP4Addr(addr_s, mask, type)
+    {
+        setMetric(metric);
+    }
+
+    IP4Route::IP4Route(const std::string & addr_s, uint32_t mask,
+                       IP4Addr::MaskType type, IP4Addr::Order order, int metric)
+                       : IP4Addr(addr_s, mask, type, order)
     {
         setMetric(metric);
     }
@@ -94,7 +101,7 @@ namespace IP4Route
         setMetric(metric);
     }
 
-    IP4Route::IP4Route(in_addr_t addr_i, uint32_t mask, MaskType::MaskType type,
+    IP4Route::IP4Route(in_addr_t addr_i, uint32_t mask, IP4Addr::MaskType type,
                        int metric) : IP4Addr(addr_i, mask, type)
     {
         setMetric(metric);
@@ -121,7 +128,11 @@ namespace IP4Route
 
         std::stringstream metric;
         metric << getMetric();
-        return IP4Addr::str() + " in " + metric.str();
+
+        std::stringstream plen;
+        plen << getPlen();
+
+        return getNetwork().first + "/" + plen.str() + " in " + metric.str();
     }
 
     std::ostream & operator<<(std::ostream & os, IP4Route & rt)

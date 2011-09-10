@@ -8,7 +8,7 @@
 #include "acrs4.hpp"
 #include "acrs4-test.hpp"
 
-class Acrs4Test : public Test::Suite
+class AcrsTest : public Test::Suite
 {
 private:
     /* Tests */
@@ -20,14 +20,14 @@ private:
     void basic_main(void);
 
 public:
-    Acrs4Test()
+    AcrsTest()
     {
-        TEST_ADD(Acrs4Test::no_routes);
-        TEST_ADD(Acrs4Test::one_good_route);
-        TEST_ADD(Acrs4Test::one_bad_route);
-        TEST_ADD(Acrs4Test::lower_not_possible);
-        TEST_ADD(Acrs4Test::basic_overlap);
-        TEST_ADD(Acrs4Test::basic_main);
+        TEST_ADD(AcrsTest::no_routes);
+        TEST_ADD(AcrsTest::one_good_route);
+        TEST_ADD(AcrsTest::one_bad_route);
+        TEST_ADD(AcrsTest::lower_not_possible);
+        TEST_ADD(AcrsTest::basic_overlap);
+        TEST_ADD(AcrsTest::basic_main);
     }
 };
 
