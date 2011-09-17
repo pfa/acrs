@@ -27,7 +27,7 @@ Once the list is sorted, each route in the list is compared with the next route 
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's metric by 1. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route. For example, ACRS can summarize 192.168.16.0/25 and 192.168.16.128/25 into 192.168.16.0/24, but an administrator might know that it's safe to summarize these routes all the way down to 192.168.0.0/16. Since this information is not presented to ACRS, it has no way to account for such situations.
 
-Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in Why use it?, below.)
+Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in [GettingStarted#Why-use-it?], below.)
 
 The first step is to re-sort the routes as follows:
 
@@ -128,15 +128,19 @@ You can enable logging by passing the -l flag as the first argument to the acrs-
 {{{
 ./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
 * Main summarization:
-*   Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0'
-*   Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0'
-*   Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
+*   Pass 1
+*     Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0'
+*     Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0'
+*   Pass 2
+*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
 * Overlap removal:
 *   Removing '10.0.0.0/16 in 0', which falls within '10.0.0.0/16 in 0'
 *   Removing '10.0.0.0/23 in 0', which falls within '10.0.0.0/16 in 0'
 * Finished. List was summarized.
 10.0.0.0/16 in 0
 }}}
+
+The "Pass X" statements in main summarization identify how many times the list of routes was re-ran through main summarization before it was fully summarized. Only one pass of overlap removal is necessary.
 
 For non-routing purposes (such as for access lists), lists of individual IP addresses can be summarized by ignoring the metric and giving each address a /32 mask:
 
