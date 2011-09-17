@@ -12,12 +12,6 @@
 
 namespace IP4Route
 {
-    enum
-    {
-        MAX_METRIC = 65535,
-        MIN_METRIC = 0
-    };
-
     class IP4Route : public IP4Addr::IP4Addr
     {
     private:
@@ -29,6 +23,12 @@ namespace IP4Route
         bool isValidMetric(int metric) const;
     
     public:
+        enum
+        {
+            MAX_METRIC = 65535,
+            MIN_METRIC = 0
+        };
+
         int getMetric() const;
         bool setMetric(int metric);
         bool isValid() const;
