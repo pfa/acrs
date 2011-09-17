@@ -112,7 +112,7 @@ After compiling, try this with the demo:
 10.0.0.0/24 in 0
 }}}
 
-Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line. This is optional, and can be used for some prefixes and omitted for others. For example:
+This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line. This is optional, and can be used for some prefixes and omitted for others. For example:
 
 {{{
 ./acrs-demo 10.0.0.0/26m1 10.0.0.64/26 10.0.0.128/25
