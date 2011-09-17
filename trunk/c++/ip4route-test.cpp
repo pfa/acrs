@@ -28,7 +28,7 @@ void IP4RouteTest::goodmetric(void)
 void IP4RouteTest::badmetric_toohigh(void)
 {
     IP4Route::IP4Route rt("192.168.1.1", 24, IP4Addr::IP4Addr::PLEN,
-                          IP4Route::MAX_METRIC + 1);
+                          IP4Route::IP4Route::MAX_METRIC + 1);
 
     TEST_ASSERT(rt.isValid() == false);
     TEST_ASSERT(rt.getMetric() == 0);
@@ -38,7 +38,7 @@ void IP4RouteTest::badmetric_toohigh(void)
 void IP4RouteTest::badmetric_negative(void)
 {
     IP4Route::IP4Route rt("192.168.1.1", 24, IP4Addr::IP4Addr::PLEN,
-                          IP4Route::MIN_METRIC - 1);
+                          IP4Route::IP4Route::MIN_METRIC - 1);
 
     TEST_ASSERT(rt.isValid() == false);
     TEST_ASSERT(rt.getMetric() == 0);

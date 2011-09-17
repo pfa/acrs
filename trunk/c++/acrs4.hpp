@@ -99,15 +99,14 @@ namespace Acrs
             }
         };
 
-        /* summarize and remove overlapping address space.
-        * return true if any summarization was done, return false otherwise.
-        */
+        /* Summarize and remove overlapping address space.
+         *  Return true if any summarization was done, return false otherwise.
+         */
         bool summarizeOverlap(void)
         {
             sort(overlapCmp);
             bool summarized = false;
 
-            /* prev starts at element 0, cur starts at element 1 */
             std::list<IP4Route::IP4Route>::iterator cur = this->begin();
 
             if (cur == this->end())
@@ -116,13 +115,15 @@ namespace Acrs
             }
 
             IP4Route::IP4Route * prev = &(*cur);
+
+            /* prev starts loop at element 0, cur starts at element 1 */
             for (cur++; cur != this->end(); prev = &(*cur), cur++)
             {
                 if ((cur->getNetwork().second & prev->getMask().second) ==
                     prev->getNetwork().second)
                 {
                     /* Only use if the summary route would have an equal or
-                     * better metric compared to the specific one */
+                     * better metric compared to the more specific route */
                     if (cur->getMetric() < prev->getMetric())
                     {
                         continue;
@@ -141,8 +142,8 @@ namespace Acrs
             return summarized;
         };
 
-        /* summarize a route list without caring about duplicates.
-         * return true if any summarization was done, return false otherwise.
+        /* Summarize a route list without caring about duplicates.
+         * Return true if any summarization was done, return false otherwise.
          */
         bool summarizeMain(void)
         {
@@ -155,7 +156,6 @@ namespace Acrs
             rc << m_main_recurse_count;
             log("*   Pass " + rc.str() + "\n");
 
-            /* prev starts at element 0, cur starts at element 1 */
             std::list<IP4Route::IP4Route>::iterator cur = this->begin();
 
             if (cur == this->end())
@@ -164,6 +164,8 @@ namespace Acrs
             }
 
             IP4Route::IP4Route * prev = &(*cur);
+
+            /* prev starts loop at element 0, cur starts at element 1 */
             for (cur++; cur != this->end(); prev = &(*cur), cur++)
             {
                 /* Prefix lengths must match */
@@ -185,16 +187,11 @@ namespace Acrs
                     continue;
                 }
 
-                /* Broadcast of first, plus one, must be equal to network
-                 * of second */
+                /* Broadcast of first, plus one, must be equal to
+                 * network of second */
                 if (newbc != cur->getNetwork().second)
                 {
                     continue;
-                }
-
-                if (prev->getPlen() == 0)
-                {
-
                 }
 
                 /* Net address of the resulting network must be equal
@@ -250,22 +247,22 @@ namespace Acrs
             }
 
             log("* Main summarization:\n");
-            bool summarized1 = summarizeMain();
+            bool mainsum = summarizeMain();
 
-            if (summarized1 == false)
+            if (mainsum == false)
             {
                 log("*   No routes affected by main summarization.\n");
             }
 
             log("* Overlap removal:\n");
-            bool summarized2 = summarizeOverlap();
+            bool overlapsum = summarizeOverlap();
 
-            if (summarized2 == false)
+            if (overlapsum == false)
             {
                 log("*   No overlapping routes.\n");
             }
 
-            if ((summarized1 | summarized2) == true)
+            if ((mainsum | overlapsum) == true)
             {
                 log("* Finished. List was summarized.\n");
                 return true;
