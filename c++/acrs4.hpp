@@ -107,14 +107,14 @@ namespace Acrs
             sort(overlapCmp);
             bool summarized = false;
 
-            std::list<IP4Route::IP4Route>::iterator cur = this->begin();
+            typename std::list<T>::iterator cur = this->begin();
 
             if (cur == this->end())
             {
                 return false;
             }
 
-            IP4Route::IP4Route * prev = &(*cur);
+            T * prev = &(*cur);
 
             /* prev starts loop at element 0, cur starts at element 1 */
             for (cur++; cur != this->end(); prev = &(*cur), cur++)
@@ -156,14 +156,14 @@ namespace Acrs
             rc << m_main_recurse_count;
             log("*   Pass " + rc.str() + "\n");
 
-            std::list<IP4Route::IP4Route>::iterator cur = this->begin();
+            typename std::list<T>::iterator cur = this->begin();
 
             if (cur == this->end())
             {
                 return false;
             }
 
-            IP4Route::IP4Route * prev = &(*cur);
+            T * prev = &(*cur);
 
             /* prev starts loop at element 0, cur starts at element 1 */
             for (cur++; cur != this->end(); prev = &(*cur), cur++)
@@ -195,10 +195,10 @@ namespace Acrs
                 }
 
                 /* Net address of the resulting network must be equal
-                 * to net address of lowest network. */
-                IP4Route::IP4Route possible(prev->getNetwork().first,
-                                            prev->getPlen() - 1,
-                                            IP4Addr::IP4Addr::PLEN);
+                 * to net address of lowest network.
+                 */
+                T possible(prev->getNetwork().first, prev->getPlen() - 1,
+                           IP4Addr::IP4Addr::PLEN);
                 if (possible.getNetwork().second == prev->getNetwork().second)
                 {
                     /* Can summarize these */
@@ -280,7 +280,7 @@ namespace Acrs
         /* Constructor */
         Acrs(std::ostream & os = std::cout, bool logging = false)
              :
-             m_os(os), m_logging(logging) {} ;
+             m_os(os), m_logging(logging) {};
 
         /* Destructor */
         virtual ~Acrs(void) {};

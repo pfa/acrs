@@ -30,7 +30,7 @@
 #define OPTIONS "lhm"
 
 bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
-              char * p_rts[]);
+             char * p_rts[]);
 void usage(void);
 
 int main(int argc, char * argv[])
@@ -79,8 +79,8 @@ int main(int argc, char * argv[])
              iter != summary.end();
              iter++)
         {
-            /* Cast to an IP address if metrics are not desired */
-            std::cout << ((IP4Addr::IP4Addr *) &(*iter))->str() << std::endl;
+            /* Cast to an IP address if metrics are not desired. */
+            std::cout << *((IP4Addr::IP4Addr *) &(*iter)) << std::endl;
         }
     }
     else
@@ -89,23 +89,11 @@ int main(int argc, char * argv[])
              iter != summary.end();
              iter++)
         {
-            std::cout << (*iter).str() << std::endl;
+            std::cout << *iter << std::endl;
         }
     }
 
     return summarized;
-}
-
-void usage(void)
-{
-    fprintf(stderr,
-            "Usage: acrs-demo [-lmh] <PREFIX> [PREFIX...]\n"
-            "       PREFIX is an IPv4 address and mask in CIDR form (e.g. "
-            "192.168.1.1/24)\n"
-            "       Use -l to enable logging\n"
-            "       Use -m to suppress metric printing (\"in 0...\")\n"
-            "       Use -h for help\n");
-    return;
 }
 
 bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
@@ -145,7 +133,7 @@ bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
             return false;
         }
 
-        /* Check for a third slash, since the below error checking will not
+        /* Check for a second slash, since the below error checking will not
          * catch it. Reusing p_addr for this as it's no longer needed.
          */
         p_addr = strtok_r(NULL, "/", &p_save);
@@ -252,3 +240,23 @@ bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
 
     return true;
 }
+
+void usage(void)
+{
+    fprintf(stderr,
+            "Automatic classless route summarization (ACRS) demo program\n"
+            "Usage:\n"
+            "\n"
+            "       ./acrs-demo [-lmh] <PREFIX>[m<METRIC>] [PREFIX...]\n"
+            "       PREFIX is an IPv4 address and mask in CIDR form. For example:\n"
+            "            192.168.1.0/24\n"
+            "       A metric of 0 is assumed unless 'm<NUMBER>' is appended to the prefix:\n"
+            "            192.168.1.0/24m1\n"
+            "       Use -l to enable logging\n"
+            "       Use -m to suppress metric printing (\"in 0...\")\n"
+            "       Use -h to display this help message\n"
+            "\n"
+            "Other useful information is available on the wiki at: acrs.googlecode.com\n");
+    return;
+}
+
