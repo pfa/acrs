@@ -147,13 +147,6 @@ For non-routing purposes (such as for access lists), lists of individual IP addr
 1.1.1.4/30 in 0
 }}}
 
-Furthermore, the metric can be suppressed from the list of output routes by supplying the -m flag. (This serves mainly to demonstrate the class hierarchy of IP4Addr and IP4Route, since the -m flag makes the demo cast each IP4Route to an IP4Addr -- which does not have a metric member -- before calling the object's print method):
-
-{{{
-./acrs-demo -m 1.1.1.7/32 1.1.1.6/32 1.1.1.4/32 1.1.1.5/32
-1.1.1.4/30
-}}}
-
 These networks will not be summarized:
 
 {{{
