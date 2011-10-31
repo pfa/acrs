@@ -125,6 +125,13 @@ bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
         }
         strncpy(ipstr, p_addr, sizeof(ipstr));
 
+        /* Check for duplicate slashes */
+        if (p_save && (strchr(p_save, '/') != 0))
+        {
+            fprintf(stderr, "Improperly formatted prefix (extra slash).\n");
+            return false;
+        }
+
         /* Get prefix length (and metric, if specified) */
         p_maskmetric = strtok_r(NULL, "/", &p_save);
         if (p_maskmetric == 0)
@@ -133,22 +140,10 @@ bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
             return false;
         }
 
-        /* Check for a second slash, since the below error checking will not
-         * catch it. Reusing p_addr for this as it's no longer needed.
-         */
-        p_addr = strtok_r(NULL, "/", &p_save);
-        if (p_addr != 0)
-        {
-            fprintf(stderr, "Improperly formatted prefix (extra slash).\n");
-            return false;
-        }
-
         /* If an "m" is used to supply a metric, make sure it is preceded
          * by a prefix length -- otherwise when strtok tokenizes something like
          * "/m1", the "1" will be used as a prefix length instead of throwing
          * an error.
-         *
-         * Similarly, if "m" is supplied, make sure a metric actually follows.
          */
         p_maskchk = strchr(p_maskmetric, 'm');
         if (p_maskchk == p_maskmetric)
@@ -157,10 +152,28 @@ bool getList(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
             return false;
         }
 
+        /*
+         * If "m" is supplied, make sure a metric actually follows.
+         *
+         * The starting address of the potential mask (maskchk) minus
+         * the length of the full mask and metric string (everything after
+         * the slash) minus 1 should NOT be equal to the starting address of
+         * the full mask and metric string. This would mean either an 'm'
+         * was specified and no metric is present, or there are two 'm' chars.
+         */
         if ((p_maskchk - (strlen(p_maskmetric) - 1)) == p_maskmetric)
         {
             fprintf(stderr, "An 'm' was supplied, but the metric is "
                     "missing.\n");
+            return false;
+        }
+
+        /* Check for a second 'm' and error out if present, which the above
+         * won't catch
+         */
+        if (p_maskchk && (strchr((p_maskchk + 1), 'm') != 0))
+        {
+            fprintf(stderr, "Duplicate 'm' character entered.\n");
             return false;
         }
 
