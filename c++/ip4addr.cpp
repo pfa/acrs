@@ -337,45 +337,14 @@ namespace IP4Addr
 
     bool IP4Addr::isValidSnmask(const uint32_t mask) const
     {
-        if (mask == 0)
+        /* Mask is valid if it's one less than a power of 2 */
+        if ((mask & (mask + 1)) == 0)
         {
             return true;
         }
-
-        /* First bit must be on */
-        if ((mask & 1) == 0)
+        else
         {
             return false;
-        }
-
-        uint8_t * cur;
-        bool seenzero = false;
-        const void * last_byte = &mask + 3;
-
-        /* For each bit in each octet, check for a 0 followed by a 1.
-         * If found, this is not a valid subnet mask. */
-        for (cur = (uint8_t *) &mask; &cur < last_byte ; cur++)
-        {
-            char bits[] = { 128, 64, 32, 16, 8, 4, 2, 1, 0 };
-            char * bptr = bits;
-
-            do 
-            {
-                if ((*cur & *bptr) == 0)
-                {
-                    /* Saw a 0 */
-                    seenzero = true;
-                }
-                else if (seenzero == true)
-                {
-                    /* Saw a 1 after having seen a 0, bad mask */
-                    return false;
-                }
-            }
-            while (*(++bptr) != 0);
-
-            /* Good mask */
-            return true;
         }
     }
 
@@ -574,4 +543,4 @@ namespace IP4Addr
 
         return m_addr.second & mask;
     }
-};
+}
