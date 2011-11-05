@@ -4,9 +4,41 @@
 
 = Introduction =
 
-Typically, route summarization is handled either manually or classfully. This library handles route summarization classlessly, and can be used to perform automatic summarization of arbitrary/changing lists of routes. The library is also useful for optimizing network filtering in various applications (such as access lists or firewall rules) by converting arbitrarily long lists of prefixes into their most summarized form.
+Typically, route summarization is handled manually, or automatically at classful address boundaries. ACRS is unique in that it handles automatic route summarization in a classless manner. This makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
 
-The source here provides two implementations of ACRS, one in C++ and one in python. These contain a generic IP address and route class, the ACRS class, and a command line based demonstration program. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
+==Examples==
+
+These simple examples briefly demonstrate what the ACRS library does.
+
+===Example 1===
+
+If ACRS is given these prefixes:
+
+{{{
+    192.168.1.0/25
+    192.168.1.128/25
+}}}
+
+The closest fit summary prefix is identified:
+
+{{{
+    192.168.1.0/24
+}}}
+
+===Example 2 (with metrics)===
+
+ACRS supports distinguishing between routing metrics. Given these routes (prefix plus a metric):
+
+{{{
+    192.168.1.0/25 metric 0
+    192.168.1.128/25 metric 1
+}}}
+
+No summarization is performed. Metrics must match for routes to be automatically summarized. If the metrics matched, they would be summarized exactly as in the first example.
+
+Although these basic examples use only two routes, an arbitrary number of prefixes may be submitted for summarization. 
+
+The source code here provides two implementations of ACRS, one in C++ and one in python. These contain a generic IPv4 address and route class, the ACRS class, and a command line based demonstration program. Conceptually, the rules used for IPv4 summarization extend to IPv6 prefixes as well, but currently only IPv4 is implemented. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
 
 = Explained =
 
