@@ -153,7 +153,7 @@ This shows three input routes being summarized, and the summarized route being p
 
 Notice that the first route had a metric of 1 assigned to it on the command line (10.0.0.0/26m1), which prevented the routes from being summarized. See the rules in the [GettingStarted#Explained] section for more information on how differing metrics affect summarization.
 
-You can enable logging by passing the -l flag as the first argument to the acrs-demo command. For example:
+You can enable logging using the -l flag. This prints information about how and when routes are summarized. For example:
 
 {{{
 ./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
