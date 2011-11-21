@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
 
     if (getList(summary, argc - optind, &argv[optind]) == false)
     {
-        fprintf(stderr, "Error: Bad list.\n");
+        fprintf(stderr, "Error: One or more invalid routes entered.\n");
         return 2;
     }
 
@@ -260,14 +260,22 @@ void usage(void)
             "Automatic classless route summarization (ACRS) demo program\n"
             "Usage:\n"
             "\n"
-            "       ./acrs-demo [-lmh] <PREFIX>[m<METRIC>] [PREFIX...]\n"
-            "       PREFIX is an IPv4 address and mask in CIDR form. For example:\n"
-            "            192.168.1.0/24\n"
-            "       A metric of 0 is assumed unless 'm<NUMBER>' is appended to the prefix:\n"
-            "            192.168.1.0/24m1\n"
-            "       Use -l to enable logging\n"
-            "       Use -m to suppress metric printing (\"in 0...\")\n"
-            "       Use -h to display this help message\n"
+            "       ./acrs-demo [-lmh] PREFIX [PREFIX ...]\n"
+            "\n"
+            "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
+            "\n"
+            "       NETWORK is an IP address in dotted decimal format (e.g. 192.168.1.1).\n"
+            "       PREFLEN is the prefix length, a number between 0 and 32.\n"
+            "       METRIC is the route's metric and is optional (default 0).\n"
+            "\n"
+            "       Example usage:  ./acrs-demo 192.168.1.0/24 192.168.1.0/24m1\n"
+            "\n"
+            "       Options:\n"
+            "       -l    enables logging\n"
+            "       -m    suppresses metric from being printed (\"... in 0\") in the\n"
+            "             summary output. Does not affect logging messages or how routes\n"
+            "             are summarized.\n"
+            "       -h    displays this help message\n"
             "\n"
             "Other useful information is available on the wiki at: acrs.googlecode.com\n");
     return;

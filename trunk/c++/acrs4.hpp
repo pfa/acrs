@@ -100,7 +100,7 @@ namespace Acrs
         };
 
         /* Summarize and remove overlapping address space.
-         *  Return true if any summarization was done, return false otherwise.
+         * Return true if any summarization was done, return false otherwise.
          */
         bool summarizeOverlap(void)
         {
@@ -129,7 +129,7 @@ namespace Acrs
                         continue;
                     }
 
-                    /* Overlapping prefixes */
+                    /* Overlapping prefixes, remove the less specific one */
                     log("*   Removing '" + cur->str() +
                         "', which falls within '" + prev->str() + "'\n");
 
@@ -224,6 +224,7 @@ namespace Acrs
             }
             else
             {
+                log("*     No routes to summarize on this pass.\n");
                 return false;
             }
         };
