@@ -94,7 +94,7 @@ Another possible use for ACRS would be in routing protocols for networks where r
 
 = Obtaining and building =
 
-You can download the latest source either from the tarball on the Downloads tab or using subversion. Right now, there is no difference between the tarball and the subversion source, so getting the tarball is probably easiest (and it includes a precompiled binary).
+You can download the latest source either from the tarball on the Downloads tab or using subversion.
 
 == From the tar file ==
 
@@ -142,7 +142,7 @@ After compiling, try this with the demo:
 10.0.0.0/24 in 0
 }}}
 
-This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (currently adding metrics is only supported in the demo program available on subversion, not in the revision 75 tar file). This is optional, and can be used for some prefixes and omitted for others. For example:
+This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (currently adding metrics is only supported in the demo program available on subversion, not in the r75 tar file). This is optional, and can be used for some prefixes and omitted for others. For example:
 
 {{{
 ./acrs-demo 10.0.0.0/26m1 10.0.0.64/26 10.0.0.128/25
