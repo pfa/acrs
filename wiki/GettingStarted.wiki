@@ -47,7 +47,7 @@ The algorithm ACRS uses is very simple. There are two steps: main summarization 
 Main summarization operates on lists of routes consisting of, at least, a network address, a prefix length, and a metric. Before summarizing, ACRS sorts the list in the following manner:
 
     # Primary sort by metric (sort order doesn't matter)
-    # Secondary by prefix length in descending order
+    # Secondary sort by prefix length in descending order
     # Tertiary sort by network address in ascending order
 
 Once the list is sorted, each route in the list is compared with the next route in the list. For any two routes in the list to be summarized, these conditions must be true:
@@ -57,7 +57,7 @@ Once the list is sorted, each route in the list is compared with the next route 
   # The broadcast address of the lower route, plus one, must be equal to the network address of the higher route
   # The network address of the potential summary route must be equal to the network address of the lower route
 
-If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using addresses NOT specified by at least one route. For example, ACRS can summarize 192.168.16.0/25 and 192.168.16.128/25 into 192.168.16.0/24, but an administrator might know that it's safe to summarize these routes all the way down to 192.168.0.0/16. Since this information is not presented to ACRS, it has no way to account for such situations.
+If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using address space NOT specified by at least one route.
 
 Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in [GettingStarted#Why_use_it?], below.)
 
@@ -78,7 +78,7 @@ This is necessary because main summarization's rules for summarizing routes will
 
 One additional note, which may come up when using the demo program:
 
-The address added to the route list is not assumed to be a network address. The specified address is ANDed with its mask, and the result is used for the purposes of summarization. For example, if you specify 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, the network ID of 192.168.1.0/24 is used, not the host address specified.
+The address added to the route list is not assumed to be a network address. The specified address is ANDed with its mask, and the result is used for the purposes of summarization. For example, if you specify 192.168.1.5/24, or any other address in the 192.168.1.0/24 range, the network ID of 192.168.1.0/24 is used, not the host address specified. If a host route is desired, use a 32 bit mask instead (e.g. 192.168.1.5/32).
 
 = Why use it? =
 
