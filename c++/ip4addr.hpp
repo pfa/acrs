@@ -1,9 +1,10 @@
 #ifndef IP4ADDR_H
 #define IP4ADDR_H
 
+#include <string>
+
 #include <inttypes.h>
 #include <arpa/inet.h>
-#include <string>
 
 namespace IP4Addr
 {
@@ -18,16 +19,17 @@ namespace IP4Addr
         bool m_mask_valid;
 
         /* Helper functions */
-        int smtopl(in_addr_t mask) const;
-        in_addr_t pltosm(uint32_t plen) const;
         uint64_t makeHash(in_addr_t addr, uint32_t mask) const;
-        bool isValidPlen(uint32_t plen) const;
-        bool isValidSnmask(uint32_t mask) const;
         void updateNetInfo(void);
         bool setAddrSuccess(void);
         bool setAddrFail(void);
         bool setMaskSuccess(void);
         bool setMaskFail(void);
+
+        int smtopl(in_addr_t mask) const;
+        in_addr_t pltosm(uint32_t plen) const;
+        bool isValidPlen(uint32_t plen) const;
+        bool isValidSnmask(uint32_t mask) const;
 
     public:
         enum MaskType
@@ -52,6 +54,9 @@ namespace IP4Addr
         std::pair<std::string, in_addr_t> getNetwork(Order order = NBO) const;
         uint64_t getHash(void) const;
         uint32_t getPlen() const;
+
+        int getAddrStrLen() { return INET_ADDRSTRLEN; };
+        int getAddrFamily() { return AF_INET; };
 
         /* Set functions */
         bool setAddr(const std::string & addr_s);
