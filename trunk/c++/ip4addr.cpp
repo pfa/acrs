@@ -70,32 +70,21 @@ namespace IP4Addr
     }
 
     /* smtopl
-     * Subnet mask (as a host order integer) to prefix length conversion.
+     * Subnet mask to prefix length conversion.
      */ 
     int IP4Addr::smtopl(in_addr_t snmask) const
     {
-        uint8_t * cur = (uint8_t *) &snmask;
-        uint32_t plen = 0;
+        /* If the subnet mask is valid, the prefix length is equal to the
+         * Hamming weight. The burden is on the caller to verify that
+         * the subnet mask is valid.
+         *
+         * Below is from graphics.stanford.edu/~seander/bithacks.html
+         */
+        int plen;
 
-        /* Check number of bits flipped on in each octet */
-        for (int i = 0; i < 4; i++, cur++) {
-            if (*cur == 255) {
-                /* All bits were on */
-                plen += 8;
-                continue;
-            } else {
-                /* Find consecutive leftmost bits on within this byte */
-                char bits[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-                char * bptr = &bits[0];
-                char * startbit = &bits[0];
-
-                while (*cur & *bptr)
-                {
-                    bptr++;
-                }
-                plen += (bptr - startbit);
-                break;
-            }
+        for (plen = 0; snmask; plen++)
+        {
+            snmask &= snmask - 1;
         }
 
         return plen;
