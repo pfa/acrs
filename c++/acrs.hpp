@@ -1,14 +1,18 @@
-/* acrs4.hpp */
+/* acrs.hpp */
 
-#ifndef ACRS4_H
-#define ACRS4_H
+#ifndef ACRS_H
+#define ACRS_H
 
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <list>
 
-#include "ip4route.hpp"
+#include <inttypes.h>
+#include <assert.h>
+
+#include "addr.hpp"
+#include "route4.hpp"
 
 namespace Acrs
 {
@@ -49,7 +53,8 @@ namespace Acrs
 
             /* If reached, prefix lengths are the same */
 
-            if (rt1.getNetwork().second < rt2.getNetwork().second)
+            /* Compare network addresses */
+            if (rt1 < rt2)
             {
                 return true;
             }
@@ -67,11 +72,11 @@ namespace Acrs
          */
         static bool overlapCmp(T & rt1, T & rt2)
         {
-            if (rt1.getNetwork().second < rt2.getNetwork().second)
+            if (rt1 < rt2)
             {
                 return true;
             }
-            else if (rt1.getNetwork().second > rt2.getNetwork().second)
+            else if (rt1.getNetworkN() > rt2.getNetworkN())
             {
                 return false;
             }
@@ -102,7 +107,7 @@ namespace Acrs
         /* Summarize and remove overlapping address space.
          * Return true if any summarization was done, return false otherwise.
          */
-        bool summarizeOverlap(void)
+        bool summarizeOverlap()
         {
             sort(overlapCmp);
             bool summarized = false;
@@ -117,26 +122,36 @@ namespace Acrs
             T * prev = &(*cur);
 
             /* prev starts loop at element 0, cur starts at element 1 */
-            for (cur++; cur != this->end(); prev = &(*cur), cur++)
+            for (cur++; cur != this->end(); prev = &(*cur++))
             {
-                if ((cur->getNetwork().second & prev->getMask().second) ==
-                    prev->getNetwork().second)
+                /* Lower network ANDed with higher mask must equal higher
+                 * network.
+                 */
+                if ((cur->getNetworkN() & prev->getMaskN()) !=
+                    prev->getNetworkN())
                 {
-                    /* Only use if the summary route would have an equal or
-                     * better metric compared to the more specific route */
-                    if (cur->getMetric() < prev->getMetric())
-                    {
-                        continue;
-                    }
-
-                    /* Overlapping prefixes, remove the less specific one */
-                    log("*   Removing '" + cur->str() +
-                        "', which falls within '" + prev->str() + "'\n");
-
-                    this->erase(cur);
-                    cur--;
-                    summarized = true;
+                    continue;
                 }
+
+                /* Don't summarize if the summary route would have a
+                 * higher metric than the more specific route.
+                 */
+                if (cur->getMetric() > prev->getMetric())
+                {
+                    continue;
+                }
+
+                /* Overlapping prefixes, remove the less specific one */
+                log("*   Removing '" + cur->str() +
+                    "', which falls within '" + prev->str() + "'\n");
+
+                cur = this->erase(cur);
+                summarized = true;
+
+                /* Reduce cur by one so when it gets incremented it
+                 * returns to the correct location
+                 */
+                 cur--;
             }
 
             return summarized;
@@ -148,8 +163,6 @@ namespace Acrs
         bool summarizeMain()
         {
             bool summarized = false;
-
-            sort(acrsCmp);
 
             m_main_recurse_count++;
             std::stringstream rc;
@@ -166,8 +179,11 @@ namespace Acrs
             T * prev = &(*cur);
 
             /* prev starts loop at element 0, cur starts at element 1 */
-            for (cur++; cur != this->end(); prev = &(*cur), cur++)
+            for (cur++; cur != this->end(); prev = &(*cur++))
             {
+                //printf("Cur is %s\n", (*cur).str().c_str());
+                //printf("Prev is %s\n", (*prev).str().c_str());
+
                 /* Prefix lengths must match */
                 if (prev->getPlen() != cur->getPlen())
                 {
@@ -180,37 +196,62 @@ namespace Acrs
                     continue;
                 }
 
-                /* Detect integer overflow */
-                uint32_t newbc = prev->getBroadcast().second + 1;
-                if (newbc == 0)
+                /*
+                 * If the prefix length is already 0, skip this route as
+                 * we can't summarize further.
+                 */
+                if (prev->getPlen() == 0)
                 {
                     continue;
                 }
 
-                /* Broadcast of first, plus one, must be equal to
-                 * network of second */
-                if (newbc != cur->getNetwork().second)
+                /* 1. Network addresses must not match to begin with
+                 *    XXX - Could speed things up in overlap removal if we
+                 *          removed matching addresses here
+                 * 2. Reduce prev's prefix length by one
+                 * 3. Apply original prefix length to the new broadcast address
+                 *    (cur's plen is the original, so it's safe to use that)
+                 * 4. Network addresses must match to summarize
+                 */
+                if (cur->getNetworkN() == prev->getNetworkN())
                 {
                     continue;
                 }
+                prev->setPlen(prev->getPlen() - 1);
+                if (T(prev->getBroadcastN(), cur->getPlen()).getNetworkN() !=
+                    cur->getNetworkN())
+                {
+                    /* Set prev's plen back to what it used to be */
+                    prev->setPlen(prev->getPlen() + 1);
+                    continue;
+                }
+
+                /* Set prev's plen back to what it used to be */
+                prev->setPlen(prev->getPlen() + 1);
 
                 /* Net address of the resulting network must be equal
                  * to net address of lowest network.
                  */
-                T possible(prev->getNetwork().first, prev->getPlen() - 1,
-                           IP4Addr::IP4Addr::PLEN);
-                if (possible.getNetwork().second == prev->getNetwork().second)
+                T possible(prev->getNetworkP(), prev->getPlen() - 1,
+                           IP::PLEN);
+
+                assert(possible.isValid() == true);
+
+                if (possible.getNetworkN() == prev->getNetworkN())
                 {
                     /* Can summarize these */
                     log("*     Summarized '" + prev->str() + "' and '" +
                         cur->str() + "' into '");
 
-                    this->erase(cur);
-                    cur--;
-                    cur->setPlen(cur->getPlen() - 1);
+                    cur = this->erase(cur);
+                    prev->IP::Addr::setPlen(prev->getPlen() - 1);
                     summarized = true;
+                    log(prev->str() + "'\n");
 
-                    log(cur->str() + "'\n");
+                    /* Reduce cur by one so when it gets incremented it
+                     * returns to the correct location
+                     */
+                    cur--;
                 }
             }
 
@@ -240,7 +281,7 @@ namespace Acrs
         };
 
     public:
-        bool summarize(void)
+        bool summarize()
         {
             if (getLogging() == true)
             {
@@ -248,6 +289,9 @@ namespace Acrs
             }
 
             log("* Main summarization:\n");
+
+            sort(acrsCmp);
+
             bool mainsum = summarizeMain();
 
             if (mainsum == false)
@@ -276,7 +320,7 @@ namespace Acrs
         };
 
         void setLogging(bool logging) { m_logging = logging; };
-        bool getLogging(void) { return m_logging; };
+        bool getLogging() { return m_logging; };
 
         /* Constructor */
         Acrs(std::ostream & os = std::cout, bool logging = false)
@@ -284,8 +328,8 @@ namespace Acrs
              m_os(os), m_logging(logging) {};
 
         /* Destructor */
-        virtual ~Acrs(void) {};
+        virtual ~Acrs() {};
     };
 }
 
-#endif /* ACRS4_H */
+#endif /* ACRS_H */
