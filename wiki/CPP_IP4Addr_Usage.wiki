@@ -1,5 +1,7 @@
 #summary Using the C++ IP4Addr class
 
+=This is obsolete for current subversion revisions, but accurate for (at least) revision 75 and lower=
+
 This is slightly out of date for the latest code, which also allows you to optionally specify the byte ordering when returning integers.
 
 = Introduction =
