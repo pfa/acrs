@@ -1,10 +1,8 @@
 #summary Using the C++ IP4Addr class
 
-=This is obsolete for current subversion revisions, but accurate for (at least) revision 75 and lower=
-
-This is slightly out of date for the latest code, which also allows you to optionally specify the byte ordering when returning integers.
-
 = Introduction =
+
+==This is obsolete for current subversion revisions, but accurate for (at least) revision 75 and lower==
 
 The IP4Addr class is intended to make data derived from an IP address easy to obtain and use, both for networking code (in network order integer form) and for display (in dotted decimal string form). It acts as a convenient front end to the inet_pton/inet_ntop class of functions and provides easy access to an addresses network ID, broadcast address, netmask, etc., in string and integer form.
 
