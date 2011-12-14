@@ -1,47 +1,38 @@
 CXX := g++
-CXXFLAGS := -g
-PROGRAMS := run-tests acrs-demo
+CXXFLAGS := -g -std=c++0x
 
-acrs-demo: acrs-demo.o ip4addr.o ip4route.o
-	$(CXX) $(CXXFLAGS) -o acrs-demo acrs-demo.o ip4addr.o ip4route.o
+acrs-demo: addr.o addr4.o addrnetform.o addr6netform.o addr4netform.o addr6.o route.o route4.o route6.o acrs-demo.o
+	$(CXX) $(CXXFLAGS) -o acrs-demo addr4.o addr6.o addrnetform.o addr6netform.o addr4netform.o addr.o route4.o route6.o route.o acrs-demo.o
 
-run-tests: run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o
-	$(CXX) $(CXXFLAGS) -o run-tests run-tests.o ip4addr.o ip4addr-test.o ip4route.o ip4route-test.o acrs4-test.o -lcpptest
-
-acrs4.hpp.gch: acrs4.hpp ip4route.hpp ip4addr.hpp
-	$(CXX) $(CXXFLAGS) -c acrs4.hpp
-
-acrs-demo.o: acrs-demo.cpp acrs4.hpp ip4route.hpp ip4addr.hpp
+acrs-demo.o: acrs-demo.cpp acrs.hpp addr.hpp route.hpp route4.hpp addr4.hpp route6.hpp addr6.hpp addr6netform.o addr4netform.o
 	$(CXX) $(CXXFLAGS) -c acrs-demo.cpp
 
-ip4addr.o: ip4addr.cpp ip4addr.hpp
-	$(CXX) $(CXXFLAGS) -c ip4addr.cpp
+addr4.o: addr4.cpp addr4.hpp addr.hpp addr4netform.o
+	$(CXX) $(CXXFLAGS) -c addr4.cpp
 
-ip4addr-test.o: ip4addr-test.cpp ip4addr.hpp ip4addr-test.hpp
-	$(CXX) $(CXXFLAGS) -c ip4addr-test.cpp
+addr6.o: addr6.cpp addr6.hpp addr.hpp addr6netform.o
+	$(CXX) $(CXXFLAGS) -c addr6.cpp
 
-ip4route.o: ip4route.cpp ip4addr.hpp ip4route.hpp
-	$(CXX) $(CXXFLAGS) -c ip4route.cpp
+addr6netform.o: addr6netform.cpp addr6netform.hpp addrnetform.cpp addrnetform.hpp
+	$(CXX) $(CXXFLAGS) -c addr6netform.cpp
 
-ip4route-test.o: ip4route-test.cpp ip4route.hpp ip4addr.hpp ip4route-test.hpp ip4addr-test.hpp
-	$(CXX) $(CXXFLAGS) -c ip4route-test.cpp
+addr4netform.o: addr4netform.cpp addr4netform.hpp addrnetform.cpp addrnetform.hpp
+	$(CXX) $(CXXFLAGS) -c addr4netform.cpp
 
-acrs4-test.o: acrs4-test.cpp acrs4.hpp ip4route.hpp ip4addr.hpp acrs4-test.hpp
-	$(CXX) $(CXXFLAGS) -c acrs4-test.cpp
+addrnetform.o: addrnetform.cpp addrnetform.hpp
+	$(CXX) $(CXXFLAGS) -c addrnetform.cpp
 
-run-tests.o: run-tests.cpp ip4addr-test.hpp ip4addr.hpp ip4route-test.hpp ip4route.hpp acrs4.hpp acrs4-test.hpp acrs4.hpp acrs4-test.hpp
-	$(CXX) $(CXXFLAGS) -c run-tests.cpp
+addr.o: addr.cpp addr.hpp
+	$(CXX) $(CXXFLAGS) -c addr.cpp
 
-all: $(PROGRAMS)
+route4.o: route4.cpp addr4.hpp addr.hpp route4.hpp route.hpp
+	$(CXX) $(CXXFLAGS) -c route4.cpp
 
-test: run-tests
-	./run-tests
+route6.o: route6.cpp addr6.hpp addr.hpp addr6netform.hpp route6.hpp route.hpp
+	$(CXX) $(CXXFLAGS) -c route6.cpp
 
-gcov: CXXFLAGS += -fprofile-arcs -ftest-coverage
-gcov: all
+route.o: route.cpp addr.hpp route.hpp
+	$(CXX) $(CXXFLAGS) -c route.cpp
 
 clean:
-	rm -f *.o
-
-gcov-clean:
-	rm -rf usr bits ext home i486-linux-gnu *.gcda *gcno *.css *.html *.png *.info
+	rm -f *.o acrs-demo

@@ -1,4 +1,4 @@
-/* acrs-demo.cpp - demo of the acrs4 library
+/* acrs-demo.cpp - demo of the acrs library
  *
  * Copyright 2011 Patrick F. Allen
  *
@@ -27,11 +27,15 @@
 #include <arpa/inet.h>
 #include <assert.h>
 
-#include "acrs4.hpp"
+#include "acrs.hpp"
+#include "route.hpp"
+#include "route4.hpp"
+#include "route6.hpp"
+#include "addr.hpp"
 
 #define OPTIONS "lhm46"
 
-bool getListIPv4(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
+bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
              char * p_rts[]);
 
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
@@ -41,7 +45,7 @@ void usage(void);
 
 int main(int argc, char * argv[])
 {
-    Acrs::Acrs<IP4Route::IP4Route> summary;
+    Acrs::Acrs<IP::Route4> summary;
     extern int optind;
     char c;
     bool print_metric = true;
@@ -119,17 +123,17 @@ int main(int argc, char * argv[])
 
     if (print_metric == false)
     {
-        for (std::list<IP4Route::IP4Route>::iterator iter = summary.begin();
+        for (std::list<IP::Route4>::iterator iter = summary.begin();
              iter != summary.end();
              iter++)
         {
             /* Cast to an IP address if metrics are not desired. */
-            std::cout << *((IP4Addr::IP4Addr *) &(*iter)) << std::endl;
+            std::cout << *(dynamic_cast<IP::Addr*>(&(*iter))) << std::endl;
         }
     }
     else
     {
-        for (std::list<IP4Route::IP4Route>::iterator iter = summary.begin();
+        for (std::list<IP::Route4>::iterator iter = summary.begin();
              iter != summary.end();
              iter++)
         {
@@ -140,7 +144,7 @@ int main(int argc, char * argv[])
     return summarized;
 }
 
-bool getListIPv4(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
+bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
              char * p_rts[])
 {
     char ipstr[INET_ADDRSTRLEN];
@@ -158,9 +162,8 @@ bool getListIPv4(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
             return false;
         }
 
-        IP4Route::IP4Route newrt(ipstr, plen_int, IP4Addr::IP4Addr::PLEN,
-                                 IP4Addr::IP4Addr::HBO, metric_int);
-        if (newrt.isValid() == false)
+        IP::Route4 newrt(ipstr, plen_int, IP::PLEN, metric_int);
+        if (newrt.Route::isValid() == false)
         {
             std::stringstream ss_plen;
             std::stringstream ss_metric;
@@ -179,20 +182,23 @@ bool getListIPv4(Acrs::Acrs<IP4Route::IP4Route> & summary, int numrts,
                     "Metric:          %s\n",
                     ipstr, ss_plen.str().c_str(), ss_metric.str().c_str());
 
-            if (metric_int > IP4Route::IP4Route::MAX_METRIC)
+            if (metric_int > IP::Route::MAX_METRIC)
             {
                 fprintf(stderr, "Note: Maximum metric was "
-                        "compiled as %d\n", IP4Route::IP4Route::MAX_METRIC);
+                        "compiled as %d\n", IP::Route::MAX_METRIC);
             }
-            else if (metric_int < IP4Route::IP4Route::MIN_METRIC)
+            else if (metric_int < IP::Route::MIN_METRIC)
             {
                 fprintf(stderr, "Note: Minimum metric was "
-                        "compiled as %d\n", IP4Route::IP4Route::MIN_METRIC);
+                        "compiled as %d\n", IP::Route::MIN_METRIC);
             }
 
             return false;
         }
-        summary.push_back(newrt);
+        else
+        {
+            summary.push_back(newrt);
+        }
     }
 
     return true;
