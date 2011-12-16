@@ -184,35 +184,35 @@ namespace IP
         return setPlen(plen);
     }
 
-    in6_addr Addr6::getBroadcastN() const
+    Addr6NetForm Addr6::getBroadcastN() const
     {
         return (Addr6NetForm(getNetworkN()) |
                Addr6NetForm(getHostmaskN())).getAddr();
     }
 
-    in6_addr Addr6::getNetworkN() const
+    Addr6NetForm Addr6::getNetworkN() const
     {
         return (getNetFormAddr() & getNetFormMask()).getAddr();
     }
 
-    in6_addr Addr6::getHostmaskN() const
+    Addr6NetForm Addr6::getHostmaskN() const
     {
         return (~ getNetFormMask()).getAddr();
     }
 
-    in6_addr Addr6::getAddrN() const
+    Addr6NetForm Addr6::getAddrN() const
     {
         return getNetFormAddr().getAddr();
     }
 
-    in6_addr Addr6::getMaskN() const
+    Addr6NetForm Addr6::getMaskN() const
     {
         return getNetFormMask().getAddr();
     }
 
     std::string Addr6::getAddrP() const
     {
-        std::tr1::function<in6_addr ()> getFunc =
+        std::tr1::function<Addr6NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr6::getAddrN), this);
 
         return getPresData(getFunc);
@@ -220,7 +220,7 @@ namespace IP
 
     std::string Addr6::getMaskP() const
     {
-        std::tr1::function<in6_addr ()> getFunc =
+        std::tr1::function<Addr6NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr6::getMaskN), this);
 
         return getPresData(getFunc);
@@ -228,7 +228,7 @@ namespace IP
 
     std::string Addr6::getNetworkP() const
     {
-        std::tr1::function<in6_addr ()> getFunc =
+        std::tr1::function<Addr6NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr6::getNetworkN), this);
 
         return getPresData(getFunc);
@@ -236,7 +236,7 @@ namespace IP
 
     std::string Addr6::getBroadcastP() const
     {
-        std::tr1::function<in6_addr ()> getFunc =
+        std::tr1::function<Addr6NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr6::getBroadcastN), this);
 
         return getPresData(getFunc);
@@ -244,7 +244,7 @@ namespace IP
 
     std::string Addr6::getHostmaskP() const
     {
-        std::tr1::function<in6_addr ()> getFunc =
+        std::tr1::function<Addr6NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr6::getHostmaskN), this);
 
         return getPresData(getFunc);
