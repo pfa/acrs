@@ -45,11 +45,11 @@ namespace IP
 
         int getMaxPlen() const;
 
-        in_addr_t getAddrN() const;
-        in_addr_t getMaskN() const;
-        in_addr_t getNetworkN() const;
-        in_addr_t getBroadcastN() const;
-        in_addr_t getHostmaskN() const;
+        Addr4NetForm getAddrN() const;
+        Addr4NetForm getMaskN() const;
+        Addr4NetForm getNetworkN() const;
+        Addr4NetForm getBroadcastN() const;
+        Addr4NetForm getHostmaskN() const;
         Addr4NetForm getNetFormAddr() const { return m_addr_net_form; };
         Addr4NetForm getNetFormMask() const { return m_mask_net_form; };
 

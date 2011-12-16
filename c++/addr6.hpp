@@ -38,11 +38,11 @@ namespace IP
         bool setMask(const std::string & mask);
         bool setMask(const uint32_t plen);
 
-        in6_addr getAddrN() const;
-        in6_addr getMaskN() const;
-        in6_addr getBroadcastN() const;
-        in6_addr getNetworkN() const;
-        in6_addr getHostmaskN() const;
+        Addr6NetForm getAddrN() const;
+        Addr6NetForm getMaskN() const;
+        Addr6NetForm getBroadcastN() const;
+        Addr6NetForm getNetworkN() const;
+        Addr6NetForm getHostmaskN() const;
 
         std::string getMaskP() const;
         std::string getAddrP() const;
@@ -74,11 +74,6 @@ namespace IP
 
         /* Destructor */
         ~Addr6() {};
-
-        static Addr6 getMaxAddr()
-        {
-            return Addr6("ffff:ffff:ffff:ffff:ffff:fffff", 128, PLEN);
-        }
     };
 }
 

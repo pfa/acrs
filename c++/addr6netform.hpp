@@ -28,6 +28,7 @@ namespace IP
             bool operator<(const Addr6NetForm & other) const;
             bool operator>(const Addr6NetForm & other) const;
             bool operator==(const Addr6NetForm & other) const;
+            bool operator!=(const Addr6NetForm & other) const;
             Addr6NetForm nbo() const;
             Addr6NetForm hbo() const;
 

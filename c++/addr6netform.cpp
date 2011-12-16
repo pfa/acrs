@@ -116,6 +116,11 @@ namespace IP
         }
     }
 
+    bool Addr6NetForm::operator!=(const Addr6NetForm & other) const
+    {
+        return ! operator==(other);
+    }
+
     Addr6NetForm Addr6NetForm::nbo() const
     {
         return m_addr_net_form;

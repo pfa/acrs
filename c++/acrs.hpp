@@ -181,9 +181,6 @@ namespace Acrs
             /* prev starts loop at element 0, cur starts at element 1 */
             for (cur++; cur != this->end(); prev = &(*cur++))
             {
-                //printf("Cur is %s\n", (*cur).str().c_str());
-                //printf("Prev is %s\n", (*prev).str().c_str());
-
                 /* Prefix lengths must match */
                 if (prev->getPlen() != cur->getPlen())
                 {
@@ -218,7 +215,8 @@ namespace Acrs
                     continue;
                 }
                 prev->setPlen(prev->getPlen() - 1);
-                if (T(prev->getBroadcastN(), cur->getPlen()).getNetworkN() !=
+                if (T(prev->getBroadcastN().getAddr(),
+                      cur->getPlen()).getNetworkN() !=
                     cur->getNetworkN())
                 {
                     /* Set prev's plen back to what it used to be */

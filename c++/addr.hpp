@@ -55,7 +55,8 @@ namespace IP
                        getPresData(std::tr1::function<T ()> getFunc) const
         {
             char buf[getAddrStrLen()];
-            T addr = getFunc();
+            T addr_net_form = getFunc();
+            decltype(addr_net_form.getAddr()) addr = addr_net_form.getAddr();
     
             inet_ntop(getAddrFamily(), &addr, buf, sizeof(buf));
     

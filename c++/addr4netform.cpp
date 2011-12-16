@@ -21,12 +21,12 @@ namespace IP
 
     Addr4NetForm Addr4NetForm::operator|(const Addr4NetForm & other) const
     {
-        return Addr4NetForm(getAddr() | other.getAddr());
+        return getAddr() | other.getAddr();
     }
 
     Addr4NetForm Addr4NetForm::operator~() const
     {
-        return ~Addr4NetForm(getAddr());
+        return ~getAddr();
     }
 
     bool Addr4NetForm::operator<(const Addr4NetForm & other) const
@@ -42,6 +42,11 @@ namespace IP
     bool Addr4NetForm::operator==(const Addr4NetForm & other) const
     {
         return getAddr() == other.getAddr();
+    }
+
+    bool Addr4NetForm::operator!=(const Addr4NetForm & other) const
+    {
+        return ! operator==(other);
     }
 
     Addr4NetForm Addr4NetForm::nbo() const

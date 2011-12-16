@@ -34,27 +34,27 @@ namespace IP
 {
     /* Get functions */
 
-    in_addr_t Addr4::getAddrN() const
+    Addr4NetForm Addr4::getAddrN() const
     {
         return getNetFormAddr().getAddr();
     }
 
-    in_addr_t Addr4::getMaskN() const
+    Addr4NetForm Addr4::getMaskN() const
     {
         return getNetFormMask().getAddr();
     }
 
-    in_addr_t Addr4::getBroadcastN() const
+    Addr4NetForm Addr4::getBroadcastN() const
     {
         return getNetworkN() | getHostmaskN();
     }
 
-    in_addr_t Addr4::getHostmaskN() const
+    Addr4NetForm Addr4::getHostmaskN() const
     {
         return ~ getMaskN();
     }
 
-    in_addr_t Addr4::getNetworkN() const
+    Addr4NetForm Addr4::getNetworkN() const
     {
         return getMaskN() & getAddrN();
     }
@@ -72,7 +72,7 @@ namespace IP
     std::string Addr4::getNetworkP() const
     {
         /* Bind the getNetworkN member function to a non-member function */
-        std::tr1::function<in_addr_t ()> getFunc =
+        std::tr1::function<Addr4NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr4::getNetworkN), this);
 
         return getPresData(getFunc);
@@ -81,7 +81,7 @@ namespace IP
     std::string Addr4::getHostmaskP() const
     {
         /* Bind the getHostmaskN member function to a non-member function */
-        std::tr1::function<in_addr_t ()> getFunc =
+        std::tr1::function<Addr4NetForm ()> getFunc =
                 std::tr1::bind(std::mem_fun(&IP::Addr4::getHostmaskN), this);
 
         return getPresData(getFunc);
@@ -90,7 +90,7 @@ namespace IP
     std::string Addr4::getBroadcastP() const
     {
         /* Bind the getBroadcastN member function to a non-member function */
-        std::tr1::function<in_addr_t ()> getFunc =
+        std::tr1::function<Addr4NetForm ()> getFunc =
                std::tr1::bind(std::mem_fun(&IP::Addr4::getBroadcastN), this);
 
         return getPresData(getFunc);
@@ -290,12 +290,12 @@ namespace IP
             return;
         }
 
-        os << "IP Address:    " << getAddrP() << " (" << getAddrN() << ")" << std::endl
+        os << "IP Address:    " << getAddrP() << " (" << getAddrN().getAddr() << ")" << std::endl
            << "Prefix length: " << getPlen() << std::endl
-           << "Subnet Mask:   " << getMaskP() << " (" << getMaskN() << ")" << std::endl
-           << "Broadcast:     " << getBroadcastP() << " (" << getBroadcastN() << ")" << std::endl
-           << "Network:       " << getNetworkP() << " (" << getNetworkN() << ")" << std::endl
-           << "Hostmask:      " << getHostmaskP() << " (" << getHostmaskN() << ")" << std::endl;
+           << "Subnet Mask:   " << getMaskP() << " (" << getMaskN().getAddr() << ")" << std::endl
+           << "Broadcast:     " << getBroadcastP() << " (" << getBroadcastN().getAddr() << ")" << std::endl
+           << "Network:       " << getNetworkP() << " (" << getNetworkN().getAddr() << ")" << std::endl
+           << "Hostmask:      " << getHostmaskP() << " (" << getHostmaskN().getAddr() << ")" << std::endl;
 
         return;
     }
@@ -316,7 +316,7 @@ namespace IP
             return 0;
         }
 
-        return getAddrN() & mask;
+        return getAddrN().getAddr() & mask;
     }
 
     int Addr4::getAddrStrLen() const
@@ -358,7 +358,7 @@ namespace IP
      * Get the one's complement of mask.
      * Mask is now in network byte order. Convert it to host order.
      */
-    in_addr_t Addr4::pltosm(const in_addr_t plen) const
+    in_addr_t Addr4::pltosm(const uint32_t plen) const
     {
         /* If prefix length is invalid or zero, return 0 */
         if ((isValidPlen(plen) == false) || plen == 0)

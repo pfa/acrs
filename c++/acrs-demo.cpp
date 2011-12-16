@@ -35,9 +35,10 @@
 
 #define OPTIONS "lhm46"
 
-bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
-             char * p_rts[]);
-
+template <typename T> bool getList(std::list<T> & summary, T & exroute,
+                   int numrts, char * p_rts[], int ipstr_len, int addr_family);
+template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
+              bool logging, bool print_metric, int ipstr_len, int addr_family);
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
               int ipstr_len, int addr_family);
 
@@ -45,10 +46,10 @@ void usage(void);
 
 int main(int argc, char * argv[])
 {
-    Acrs::Acrs<IP::Route4> summary;
     extern int optind;
     char c;
     bool print_metric = true;
+    bool logging = false;
     bool ipv4 = false;
     bool ipv6 = false;
 
@@ -60,7 +61,7 @@ int main(int argc, char * argv[])
                 print_metric = false;
                 break;
             case 'l':
-                summary.setLogging(true);
+                logging = true;
                 break;
             case '4':
                 if (ipv6 == true)
@@ -107,13 +108,51 @@ int main(int argc, char * argv[])
         return 2;
     }
 
-    if (ipv6 == true)
+    int retval;
+
+    if (ipv4)
     {
-        fprintf(stderr, "Error: IPv6 is not currently implemented.\n");
-        return 2;
+        IP::Route4 example("", 0);
+        retval = runSummary(example, argc - optind, &argv[optind], logging,
+                                print_metric, INET_ADDRSTRLEN, AF_INET);
+    }
+    else if (ipv6)
+    {
+        IP::Route6 example("", 0);
+        retval = runSummary(example, argc - optind, &argv[optind], logging,
+                                print_metric, INET6_ADDRSTRLEN, AF_INET6);
+    }
+    else
+    {
+        assert(false);
     }
 
-    if (getListIPv4(summary, argc - optind, &argv[optind]) == false)
+    if (retval == 1)
+    {
+        /* Return 0 if anything was summarized */
+        return 0;
+    }
+    else if (retval == 0)
+    {
+        /* Return 1 if nothing was summarized but there were no errors */
+        return 1;
+    }
+    else
+    {
+        /* Return 2 if there was an error */
+        return 2;
+    }
+}
+
+template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
+               bool logging, bool print_metric, int ipstr_len, int addr_family)
+{
+    /* Get the summary type */
+    Acrs::Acrs<decltype(exroute)> summary;
+    summary.setLogging(logging);
+
+    if (getList(summary, exroute, numrts, p_rts, ipstr_len, addr_family) ==
+        false)
     {
         fprintf(stderr, "Error: One or more invalid routes entered.\n");
         return 2;
@@ -123,7 +162,8 @@ int main(int argc, char * argv[])
 
     if (print_metric == false)
     {
-        for (std::list<IP::Route4>::iterator iter = summary.begin();
+        for (typename Acrs::Acrs<decltype(exroute)>::iterator iter =
+                                                           summary.begin();
              iter != summary.end();
              iter++)
         {
@@ -133,7 +173,8 @@ int main(int argc, char * argv[])
     }
     else
     {
-        for (std::list<IP::Route4>::iterator iter = summary.begin();
+        for (typename Acrs::Acrs<decltype(exroute)>::iterator iter =
+                                                           summary.begin();
              iter != summary.end();
              iter++)
         {
@@ -144,10 +185,10 @@ int main(int argc, char * argv[])
     return summarized;
 }
 
-bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
-             char * p_rts[])
+template <typename T> bool getList(std::list<T> & summary, T & exroute,
+                   int numrts, char * p_rts[], int ipstr_len, int addr_family)
 {
-    char ipstr[INET_ADDRSTRLEN];
+    char ipstr[ipstr_len];
     int plen_int;
     int metric_int;
     char * p_prefix;
@@ -157,13 +198,13 @@ bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
         p_prefix = p_rts[i];
 
         if (getRoute(p_prefix, ipstr, &plen_int, &metric_int, sizeof(ipstr),
-                     AF_INET) == false)
+                     addr_family) == false)
         {
             return false;
         }
 
-        IP::Route4 newrt(ipstr, plen_int, IP::PLEN, metric_int);
-        if (newrt.Route::isValid() == false)
+        T newrt(ipstr, plen_int, IP::PLEN, metric_int);
+        if (newrt.isValid() == false)
         {
             std::stringstream ss_plen;
             std::stringstream ss_metric;
@@ -204,35 +245,6 @@ bool getListIPv4(Acrs::Acrs<IP::Route4> & summary, int numrts,
     return true;
 }
 
-void usage(void)
-{
-    fprintf(stderr,
-            "Automatic classless route summarization (ACRS) demo program\n"
-            "Usage:\n"
-            "\n"
-            "       ./acrs-demo [-lmh] PREFIX [PREFIX ...]\n"
-            "\n"
-            "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
-            "\n"
-            "       NETWORK is an IP address in dotted decimal format (e.g. 192.168.1.1).\n"
-            "       PREFLEN is the prefix length, a number between 0 and 32.\n"
-            "       METRIC is the route's metric and is optional (default 0).\n"
-            "\n"
-            "       Example usage:  ./acrs-demo 192.168.1.0/24 192.168.1.0/24m1\n"
-            "\n"
-            "       Options:\n"
-            "       -l    enables logging\n"
-            "       -m    suppresses metric from being printed (\"... in 0\") in the\n"
-            "             summary output. Does not affect logging messages or how routes\n"
-            "             are summarized.\n"
-            "       -4    Input routes are IPv4 (default)\n"
-            "       -6    Input routes are IPv6 (not implemented)\n"
-            "       -h    displays this help message\n"
-            "\n"
-            "Other useful information is available on the wiki at: acrs.googlecode.com\n");
-    return;
-}
-
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
               int ipstr_len, int addr_family)
 {
@@ -251,15 +263,15 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
 
         switch (addr_family)
         {
-            case AF_INET:
-                addr_example = "1.1.1.0/24";
-                break;
-            case AF_INET6:
-                addr_example = "feee::1/64";
-                break;
-            default:
-                assert(false);
-                break;
+        case AF_INET:
+            addr_example = "1.1.1.0/24";
+            break;
+        case AF_INET6:
+            addr_example = "feee::1/64";
+            break;
+        default:
+            assert(false);
+            break;
         }
 
         fprintf(stderr, "Could not find IP address, no slash found in: %s"
@@ -307,7 +319,7 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
      */
     if ((p_maskchk - (strlen(p_maskmetric) - 1)) == p_maskmetric)
     {
-        fprintf(stderr, "An 'm' was supplied, but the metric is "
+        fprintf(stderr, "An 'm' was supplied, but the metric was "
                 "missing.\n");
         return false;
     }
@@ -360,4 +372,33 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
     }
 
     return true;
+}
+
+void usage(void)
+{
+    fprintf(stderr,
+            "Automatic classless route summarization (ACRS) demo program\n"
+            "Usage:\n"
+            "\n"
+            "       ./acrs-demo [-lmh] PREFIX [PREFIX ...]\n"
+            "\n"
+            "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
+            "\n"
+            "       NETWORK is an IP address in dotted decimal format (e.g. 192.168.1.1).\n"
+            "       PREFLEN is the prefix length, a number between 0 and 32.\n"
+            "       METRIC is the route's metric and is optional (default 0).\n"
+            "\n"
+            "       Example usage:  ./acrs-demo 192.168.0.0/24m1 192.168.1.0/24m1\n"
+            "\n"
+            "       Options:\n"
+            "       -l    enables logging\n"
+            "       -m    suppresses metric from being printed (\"... in 0\") in the\n"
+            "             summary output. Does not affect logging messages or how routes\n"
+            "             are summarized.\n"
+            "       -4    Input routes are IPv4 (default)\n"
+            "       -6    Input routes are IPv6\n"
+            "       -h    displays this help message\n"
+            "\n"
+            "Other useful information is available on the wiki at: acrs.googlecode.com\n");
+    return;
 }
