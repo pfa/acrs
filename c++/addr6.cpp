@@ -293,10 +293,9 @@ namespace IP
         return;
     }
 
-    /* Mask should be validated in the caller. This counts the number of
-     * bits set to 1, assuming that the first byte that is NOT all 1s
-     * is the last byte containing any 1s at all -- the remaining
-     * bytes are assumed to be 0.
+    /* Mask must be validated in the caller. This counts the number of
+     * bits set to 1, assuming the mask is valid. (That is, it stops
+     * counting after it counts a byte that is not all 1s.)
      */
     uint32_t Addr6::smtopl(const in6_addr & mask) const
     {
@@ -304,7 +303,7 @@ namespace IP
         int plen = 0;
 
         for (uint8_t * p_mask_byte = const_cast<uint8_t *>(mask.s6_addr);
-             p_mask_byte != p_end;
+             p_mask_byte <= p_end;
              p_mask_byte++)
         {
             if (*p_mask_byte != 255)
@@ -333,10 +332,10 @@ namespace IP
         int count = 0;
         int fullbytes = plen / 8;
 
-        /* Init .s6_addr to zero so we don't have to set all bytes later... */
+        /* Init mask to all 0s */
         memset(&mask.s6_addr, 0, sizeof(mask.s6_addr));
 
-        for (int count = 0; count != fullbytes; count++)
+        for (count = 0; count != fullbytes; count++)
         {
             mask.s6_addr[count] = 255;
         }

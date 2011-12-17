@@ -167,7 +167,7 @@ template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
              iter != summary.end();
              iter++)
         {
-            /* Cast to an IP address if metrics are not desired. */
+            /* Cast to an IP address if metrics are not desired */
             std::cout << *(dynamic_cast<IP::Addr*>(&(*iter))) << std::endl;
         }
     }
@@ -217,11 +217,12 @@ template <typename T> bool getList(std::list<T> & summary, T & exroute,
             ss_plen << plen_int;
             ss_metric << metric_int;
 
-            fprintf(stderr, "Invalid route with attributes:\n"
+            fprintf(stderr, "Invalid IPv%d route with attributes:\n"
                     "Address:         %s\n"
                     "Prefix length:   %s\n"
                     "Metric:          %s\n",
-                    ipstr, ss_plen.str().c_str(), ss_metric.str().c_str());
+                    addr_family == AF_INET ? 4 : 6, ipstr,
+                    ss_plen.str().c_str(), ss_metric.str().c_str());
 
             if (metric_int > IP::Route::MAX_METRIC)
             {
