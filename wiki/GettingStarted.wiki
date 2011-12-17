@@ -52,10 +52,11 @@ Main summarization operates on lists of routes consisting of, at least, a networ
 
 Once the list is sorted, each route in the list is compared with the next route in the list. For any two routes in the list to be summarized, these conditions must be true:
 
-  # Their metrics must match
-  # Their prefix lengths must match
-  # The broadcast address of the lower route, plus one, must be equal to the network address of the higher route
-  # The network address of the potential summary route must be equal to the network address of the lower route
+  # Their metrics must match.
+  # Their prefix lengths must match.
+  # The network addresses must not match.
+  # Temporarily decrease the lower route's prefix length by 1. Get its broadcast address, then apply the original prefix length. The resulting address must not be equal to the higher route's network address.
+  # The network address of the potential summary route must be equal to the network address of the lower route.
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using address space NOT specified by at least one route.
 
