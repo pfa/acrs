@@ -1,4 +1,20 @@
-/* acrs.hpp */
+/* acrs.hpp -- ACRS class template for IPv4/6 prefix summarization
+ *
+ * Copyright 2011 Patrick F. Allen
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef ACRS_H
 #define ACRS_H
@@ -54,7 +70,7 @@ namespace Acrs
             /* If reached, prefix lengths are the same */
 
             /* Compare network addresses */
-            if (rt1 < rt2)
+            if (rt1.getNetworkN() < rt2.getNetworkN())
             {
                 return true;
             }
