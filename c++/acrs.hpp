@@ -152,7 +152,7 @@ namespace Acrs
                 /* Don't summarize if the summary route would have a
                  * higher metric than the more specific route.
                  */
-                if (cur->getMetric() > prev->getMetric())
+                if (cur->getMetric() < prev->getMetric())
                 {
                     continue;
                 }
@@ -243,30 +243,19 @@ namespace Acrs
                 /* Set prev's plen back to what it used to be */
                 prev->setPlen(prev->getPlen() + 1);
 
-                /* Net address of the resulting network must be equal
-                 * to net address of lowest network.
+                /* Can summarize these */
+                log("*     Summarized '" + prev->str() + "' and '" +
+                    cur->str() + "' into '");
+
+                cur = this->erase(cur);
+                prev->IP::Addr::setPlen(prev->getPlen() - 1);
+                summarized = true;
+                log(prev->str() + "'\n");
+
+                /* Reduce cur by one so when it gets incremented it
+                 * returns to the correct location
                  */
-                T possible(prev->getNetworkP(), prev->getPlen() - 1,
-                           IP::PLEN);
-
-                assert(possible.isValid() == true);
-
-                if (possible.getNetworkN() == prev->getNetworkN())
-                {
-                    /* Can summarize these */
-                    log("*     Summarized '" + prev->str() + "' and '" +
-                        cur->str() + "' into '");
-
-                    cur = this->erase(cur);
-                    prev->IP::Addr::setPlen(prev->getPlen() - 1);
-                    summarized = true;
-                    log(prev->str() + "'\n");
-
-                    /* Reduce cur by one so when it gets incremented it
-                     * returns to the correct location
-                     */
-                    cur--;
-                }
+                cur--;
             }
 
             /* If we summarized at all on this iteration, go over the
