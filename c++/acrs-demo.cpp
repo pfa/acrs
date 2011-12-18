@@ -1,4 +1,4 @@
-/* acrs-demo.cpp - demo of the acrs library
+/* acrs-demo.cpp - Demo program for the ACRS library
  *
  * Copyright 2011 Patrick F. Allen
  *

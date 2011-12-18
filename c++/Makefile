@@ -1,6 +1,7 @@
 include Makefile.inc
 
-TEST_DIR="tests"
+TEST_DIR="test"
+.PHONY : test
 
 acrs-demo: addr.o addr4.o addrnetform.o addr6netform.o addr4netform.o addr6.o route.o route4.o route6.o acrs-demo.o
 	$(RUN_CXX) -o acrs-demo addr4.o addr6.o addrnetform.o addr6netform.o addr4netform.o addr.o route4.o route6.o route.o acrs-demo.o
@@ -35,9 +36,11 @@ route6.o: route6.cpp addr6.hpp addr.hpp addr6netform.hpp route6.hpp route.hpp
 route.o: route.cpp addr.hpp route.hpp
 	$(RUN_CXX) -c route.cpp
 
-test: 
-	cd $(TEST_DIR)
-	make
+test:
+	make test -C $(TEST_DIR)
 
 clean:
 	rm -f *.o acrs-demo
+	make clean -C $(TEST_DIR)
+
+all: acrs-demo test
