@@ -2,5 +2,5 @@
 
 int main()
 {
-    printf("Run tests ok\n");
+    
 }
