@@ -23,6 +23,7 @@
 #include <string>
 #include <sstream>
 #include <list>
+#include <algorithm>
 
 #include <inttypes.h>
 #include <assert.h>
@@ -45,7 +46,7 @@ namespace Acrs
          * then by network address in ascending order,
          * then by metric in ascending order.
          */
-        static bool acrsCmp(T & rt1, T & rt2)
+        static bool acrsCmp(const T & rt1, const T & rt2)
         {
             if (rt1.getMetric() < rt2.getMetric())
             {
@@ -86,7 +87,7 @@ namespace Acrs
          * then by prefix length in ascending order,
          * then by metric in ascending order.
          */
-        static bool overlapCmp(T & rt1, T & rt2)
+        static bool overlapCmp(const T & rt1, const T & rt2)
         {
             if (rt1 < rt2)
             {
@@ -125,7 +126,6 @@ namespace Acrs
          */
         bool summarizeOverlap()
         {
-            sort(overlapCmp);
             bool summarized = false;
 
             typename std::list<T>::iterator cur = this->begin();
@@ -161,7 +161,7 @@ namespace Acrs
                 log("*   Removing '" + cur->str() +
                     "', which falls within '" + prev->str() + "'\n");
 
-                cur = this->erase(cur);
+                cur = erase(cur);
                 summarized = true;
 
                 /* Reduce cur by one so when it gets incremented it
@@ -180,12 +180,15 @@ namespace Acrs
         {
             bool summarized = false;
 
+            sort(acrsCmp);
+
             m_main_recurse_count++;
             std::stringstream rc;
             rc << m_main_recurse_count;
             log("*   Pass " + rc.str() + "\n");
 
             typename std::list<T>::iterator cur = this->begin();
+            //typename std::list<T>::iterator next = this->begin();
 
             if (cur == this->end())
             {
@@ -193,9 +196,10 @@ namespace Acrs
             }
 
             T * prev = &(*cur);
+            cur++;
 
             /* prev starts loop at element 0, cur starts at element 1 */
-            for (cur++; cur != this->end(); prev = &(*cur++))
+            for (; cur != this->end(); prev = &(*cur), cur++)
             {
                 /* Prefix lengths must match */
                 if (prev->getPlen() != cur->getPlen())
@@ -218,22 +222,36 @@ namespace Acrs
                     continue;
                 }
 
-                /* 1. Network addresses must not match to begin with
-                 *    XXX - Could speed things up in overlap removal if we
-                 *          removed matching addresses here
-                 * 2. Reduce prev's prefix length by one
-                 * 3. Apply original prefix length to the new broadcast address
-                 *    (cur's plen is the original, so it's safe to use that)
-                 * 4. Network addresses must match to summarize
+                /* Network addresses must not match. If they happen to,
+                 * might as well remove them now so we save a little time
+                 * during overlap removal.
                  */
                 if (cur->getNetworkN() == prev->getNetworkN())
                 {
+                    log("*     Removed duplicate prefix: '" +
+                        prev->str() + "'\n");
+                    cur = erase(cur);
+
+                    /* Reduce cur by one so when it gets incremented by
+                     * the for loop it returns to the correct location
+                     */
+                    cur--;
+                    summarized = true;
+
                     continue;
                 }
+
+                /* 1. Temporarily reduce prev's prefix length by one
+                 * 2. Apply original prefix length to the new broadcast address
+                 *    (cur's plen is the original, so it's safe to use
+                 *     that)
+                 * 3. Network addresses must match to summarize
+                 */
                 prev->setPlen(prev->getPlen() - 1);
-                if (T(prev->getBroadcastN().getAddr(),
-                      cur->getPlen()).getNetworkN() !=
-                    cur->getNetworkN())
+                T possible(prev->getBroadcastN().getAddr(),
+                            cur->getPlen());
+
+                if (possible.getNetworkN() != cur->getNetworkN())
                 {
                     /* Set prev's plen back to what it used to be */
                     prev->setPlen(prev->getPlen() + 1);
@@ -247,15 +265,27 @@ namespace Acrs
                 log("*     Summarized '" + prev->str() + "' and '" +
                     cur->str() + "' into '");
 
-                cur = this->erase(cur);
-                prev->IP::Addr::setPlen(prev->getPlen() - 1);
-                summarized = true;
-                log(prev->str() + "'\n");
+                /* Insert a new route to the list with a prefix length of one
+                 * less than the smaller route's.
+                 *
+                 * Have to make sure the list remains ordered after removing
+                 * the old routes and adding the summary. Options for that:
+                 * 1. Sort the whole list (easy but slow)
+                 * 2. Change from list to vector and do a partial sort
+                 *    from prev to the last route with a prefix length
+                 *    one less than prev's
+                 * 3. Insert the new route into a new list, then merge into
+                 *    the old list.
+                 */
+                prev->setPlen(prev->getPlen() - 1);
+                cur = erase(cur);
 
-                /* Reduce cur by one so when it gets incremented it
-                 * returns to the correct location
+                /* Reduce cur by one so when it gets incremented by
+                 * the for loop it returns to the correct location
                  */
                 cur--;
+                summarized = true;
+                log(prev->str() + "'\n");
             }
 
             /* If we summarized at all on this iteration, go over the
@@ -291,16 +321,17 @@ namespace Acrs
                 m_main_recurse_count = 0;
             }
 
-            log("* Main summarization:\n");
-
             sort(acrsCmp);
 
+            log("* Main summarization:\n");
             bool mainsum = summarizeMain();
 
             if (mainsum == false)
             {
                 log("*   No routes affected by main summarization.\n");
             }
+
+            sort(overlapCmp);
 
             log("* Overlap removal:\n");
             bool overlapsum = summarizeOverlap();
