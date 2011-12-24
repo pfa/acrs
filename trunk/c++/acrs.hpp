@@ -42,9 +42,9 @@ namespace Acrs
 
         /* Compare two routes to determine which should come first.
          *
-         * Sort by prefix length in descending order,
-         * then by network address in ascending order,
-         * then by metric in ascending order.
+         * Group by metric,
+         * then sort by prefix length in descending order,
+         * then sort by network address in ascending order.
          */
         static bool acrsCmp(const T & rt1, const T & rt2)
         {
@@ -71,7 +71,7 @@ namespace Acrs
             /* If reached, prefix lengths are the same */
 
             /* Compare network addresses */
-            if (rt1.getNetworkN() < rt2.getNetworkN())
+            if (rt1.getNetworkN().nbo() < rt2.getNetworkN().nbo())
             {
                 return true;
             }
@@ -188,7 +188,6 @@ namespace Acrs
             log("*   Pass " + rc.str() + "\n");
 
             typename std::list<T>::iterator cur = this->begin();
-            //typename std::list<T>::iterator next = this->begin();
 
             if (cur == this->end())
             {
@@ -216,6 +215,10 @@ namespace Acrs
                 /*
                  * If the prefix length is already 0, skip this route as
                  * we can't summarize further.
+                 *
+                 * XXX - Could speed things up by quitting if we find a prefix
+                 *     length of 0 here. Just look for the default route with
+                 *     the lowest metric and use that if this is hit.
                  */
                 if (prev->getPlen() == 0)
                 {
@@ -277,15 +280,15 @@ namespace Acrs
                  * 3. Insert the new route into a new list, then merge into
                  *    the old list.
                  */
-                prev->setPlen(prev->getPlen() - 1);
                 cur = erase(cur);
 
                 /* Reduce cur by one so when it gets incremented by
                  * the for loop it returns to the correct location
                  */
                 cur--;
+                cur->setPlen(cur->getPlen() - 1);
                 summarized = true;
-                log(prev->str() + "'\n");
+                log(cur->str() + "'\n");
             }
 
             /* If we summarized at all on this iteration, go over the
@@ -320,8 +323,6 @@ namespace Acrs
             {
                 m_main_recurse_count = 0;
             }
-
-            sort(acrsCmp);
 
             log("* Main summarization:\n");
             bool mainsum = summarizeMain();
