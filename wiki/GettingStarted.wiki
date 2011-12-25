@@ -52,13 +52,14 @@ Main summarization operates on lists of routes consisting of, at least, a networ
 
 Once the list is sorted, each route in the list is compared with the next route in the list. For any two routes in the list to be summarized, these conditions must be true:
 
-  # Their metrics must match.
   # Their prefix lengths must match.
+  # Their metrics must match.
   # The network addresses must not match.
-  # Temporarily decrease the lower route's prefix length by 1. Get its broadcast address, then apply the original prefix length. The resulting address must not be equal to the higher route's network address.
-  # The network address of the potential summary route must be equal to the network address of the lower route.
+  # Temporarily decrease the lower route's prefix length by 1. Get its broadcast address, then apply the original prefix length. The resulting network address must match the higher route's network address.
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using address space NOT specified by at least one route.
+
+If a route fails step 3 above, one of the routes is removed, since they are duplicates (equal prefix lengths, metrics, and network addresses). Technically this falls under the realm of overlap removal, but it is handled here since it has to be checked anyway. Another check in the code is that the prefix length must not equal 0 for summarization to occur -- otherwise reducing the prefix length by 1 in step 4 would fail.
 
 Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in [GettingStarted#Why_use_it?], below.)
 
