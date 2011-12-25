@@ -89,11 +89,11 @@ namespace Acrs
          */
         static bool overlapCmp(const T & rt1, const T & rt2)
         {
-            if (rt1 < rt2)
+            if (rt1.getNetworkN().nbo() < rt2.getNetworkN().nbo())
             {
                 return true;
             }
-            else if (rt1.getNetworkN() > rt2.getNetworkN())
+            else if (rt1.getNetworkN().nbo() > rt2.getNetworkN().nbo())
             {
                 return false;
             }
