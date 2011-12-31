@@ -164,8 +164,8 @@ namespace Acrs
                 cur = erase(cur);
                 summarized = true;
 
-                /* Reduce cur by one so when it gets incremented it
-                 * returns to the correct location
+                /* Reduce cur by one so when it gets incremented
+                 * by the for loop it returns to the correct location
                  */
                  cur--;
             }
@@ -173,7 +173,7 @@ namespace Acrs
             return summarized;
         };
 
-        /* Summarize a route list without caring about duplicates.
+        /* Summarize a route list without caring about overlap.
          * Return true if any summarization was done, return false otherwise.
          */
         bool summarizeMain()
@@ -215,10 +215,6 @@ namespace Acrs
                 /*
                  * If the prefix length is already 0, skip this route as
                  * we can't summarize further.
-                 *
-                 * XXX - Could speed things up by quitting if we find a prefix
-                 *     length of 0 here. Just look for the default route with
-                 *     the lowest metric and use that if this is hit.
                  */
                 if (prev->getPlen() == 0)
                 {
@@ -244,6 +240,13 @@ namespace Acrs
                     continue;
                 }
 
+                /* Store prev in string form now, before its plen is
+                 * decremented. This way it doesn't need to be incremented then
+                 * decremented again if it can be summarized, in order to be
+                 * logged.
+                 */
+                std::string old_prev_str = prev->str();
+
                 /* 1. Temporarily reduce prev's prefix length by one
                  * 2. Apply original prefix length to the new broadcast address
                  *    (cur's plen is the original, so it's safe to use
@@ -261,34 +264,20 @@ namespace Acrs
                     continue;
                 }
 
-                /* Set prev's plen back to what it used to be */
-                prev->setPlen(prev->getPlen() + 1);
+                log("*     Summarized '" + old_prev_str + "' and '" +
+                    cur->str() + "' into '" + prev->str() + "\n");
 
-                /* Can summarize these */
-                log("*     Summarized '" + prev->str() + "' and '" +
-                    cur->str() + "' into '");
-
-                /* Insert a new route to the list with a prefix length of one
-                 * less than the smaller route's.
-                 *
-                 * Have to make sure the list remains ordered after removing
-                 * the old routes and adding the summary. Options for that:
-                 * 1. Sort the whole list (easy but slow)
-                 * 2. Change from list to vector and do a partial sort
-                 *    from prev to the last route with a prefix length
-                 *    one less than prev's
-                 * 3. Insert the new route into a new list, then merge into
-                 *    the old list.
+                /* Summarize the routes by:
+                 *   1) Decrementing prev's plen (already done above)
+                 *   2) Deleting cur
                  */
                 cur = erase(cur);
+                summarized = true;
 
                 /* Reduce cur by one so when it gets incremented by
                  * the for loop it returns to the correct location
                  */
                 cur--;
-                cur->setPlen(cur->getPlen() - 1);
-                summarized = true;
-                log(cur->str() + "'\n");
             }
 
             /* If we summarized at all on this iteration, go over the
