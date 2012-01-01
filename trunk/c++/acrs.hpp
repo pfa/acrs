@@ -269,7 +269,7 @@ namespace Acrs
                 }
 
                 log("*     Summarized '" + old_prev_str + "' and '" +
-                    cur->str() + "' into '" + prev->str() + "\n");
+                    cur->str() + "' into '" + prev->str() + "'\n");
 
                 /* Summarize the routes by:
                  *   1) Decrementing prev's plen (already done above)

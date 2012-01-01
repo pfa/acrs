@@ -215,7 +215,7 @@ namespace IP
     }
 
     /* Constructors */
-    Addr4::Addr4(void)
+    Addr4::Addr4()
     {
         setAddrFail();
         setMaskFail();
