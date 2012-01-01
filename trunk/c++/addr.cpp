@@ -98,7 +98,22 @@ namespace IP
 
     bool Addr::setPlen(const uint32_t plen)
     {
-        return setSnmaskFromPlen(plen);
+        if (isValidPlen(plen) == false)
+        {
+            setMaskFail();
+            return false;
+        }
+
+        if (setSnmaskFromPlen(plen) == true)
+        {
+            setMaskSuccess();
+            return true;
+        }
+        else
+        {
+            setMaskFail();
+            return false;
+        }
     }
 
     bool Addr::isValidPlen(const uint32_t plen) const
