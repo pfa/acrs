@@ -22,18 +22,14 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <list>
 #include <algorithm>
 
 #include <inttypes.h>
 #include <assert.h>
 
-#include "addr.hpp"
-#include "route4.hpp"
-
 namespace Acrs
 {
-    template <class T> class Acrs : public std::list<T>
+    class Acrs
     {
     private:
         bool m_logging;
@@ -46,7 +42,7 @@ namespace Acrs
          * then sort by prefix length in descending order,
          * then sort by network address in ascending order.
          */
-        static bool acrsCmp(const T & rt1, const T & rt2)
+        template <class T> static bool acrsCmp(const T & rt1, const T & rt2)
         {
             if (rt1.getMetric() < rt2.getMetric())
             {
@@ -87,7 +83,7 @@ namespace Acrs
          * then by prefix length in ascending order,
          * then by metric in ascending order.
          */
-        static bool overlapCmp(const T & rt1, const T & rt2)
+        template <class T> static bool overlapCmp(const T & rt1, const T & rt2)
         {
             if (rt1.getNetworkN().nbo() < rt2.getNetworkN().nbo())
             {
@@ -124,22 +120,25 @@ namespace Acrs
         /* Summarize and remove overlapping address space.
          * Return true if any summarization was done, return false otherwise.
          */
-        bool summarizeOverlap()
+        template <class T> bool summarizeOverlap(T & rt_container)
         {
             bool summarized = false;
 
-            sort(overlapCmp);
+            rt_container.sort(
+                  static_cast<bool (*)(const typename T::value_type &,
+                                       const typename T::value_type &)>
+                                      (overlapCmp));
 
-            typename std::list<T>::iterator cur = this->begin();
-            if (cur == this->end())
+            typename T::iterator cur = rt_container.begin();
+            if (cur == rt_container.end())
             {
                 return false;
             }
 
-            T * prev = &(*cur);
+            typename T::value_type * prev = &(*cur);
 
             /* prev starts loop at element 0, cur starts at element 1 */
-            for (cur++; cur != this->end(); prev = &(*cur++))
+            for (cur++; cur != rt_container.end(); prev = &(*cur++))
             {
                 /* Lower network ANDed with higher mask must equal higher
                  * network.
@@ -162,7 +161,7 @@ namespace Acrs
                 log("*   Removing '" + cur->str() +
                     "', which falls within '" + prev->str() + "'\n");
 
-                cur = erase(cur);
+                cur = rt_container.erase(cur);
                 summarized = true;
 
                 /* Reduce cur by one so when it gets incremented
@@ -177,29 +176,32 @@ namespace Acrs
         /* Summarize a route list without caring about overlap.
          * Return true if any summarization was done, return false otherwise.
          */
-        bool summarizeMain()
+        template <class T> bool summarizeMain(T & rt_container)
         {
             bool summarized = false;
 
-            sort(acrsCmp);
+            rt_container.sort(
+                  static_cast<bool (*)(const typename T::value_type &,
+                                       const typename T::value_type &)>
+                                      (acrsCmp));
 
             m_main_recurse_count++;
             std::stringstream rc;
             rc << m_main_recurse_count;
             log("*   Pass " + rc.str() + "\n");
 
-            typename std::list<T>::iterator cur = this->begin();
+            typename T::iterator cur = rt_container.begin();
 
-            if (cur == this->end())
+            if (cur == rt_container.end())
             {
                 return false;
             }
 
-            T * prev = &(*cur);
+            typename T::value_type * prev = &(*cur);
             cur++;
 
             /* prev starts loop at element 0, cur starts at element 1 */
-            for (; cur != this->end(); prev = &(*cur), cur++)
+            for (; cur != rt_container.end(); prev = &(*cur), cur++)
             {
                 /* Prefix lengths must match */
                 if (prev->getPlen() != cur->getPlen())
@@ -230,7 +232,7 @@ namespace Acrs
                 {
                     log("*     Removed duplicate prefix: '" +
                         prev->str() + "'\n");
-                    cur = erase(cur);
+                    cur = rt_container.erase(cur);
 
                     /* Reduce cur by one so when it gets incremented by
                      * the for loop it returns to the correct location
@@ -255,8 +257,9 @@ namespace Acrs
                  * 3. Network addresses must match to summarize
                  */
                 prev->setPlen(prev->getPlen() - 1);
-                T possible(prev->getBroadcastN().getAddr(),
-                            cur->getPlen());
+
+                typename T::value_type possible(prev->getBroadcastN().getAddr(),
+                                                cur->getPlen());
 
                 if (possible.getNetworkN() != cur->getNetworkN())
                 {
@@ -272,7 +275,7 @@ namespace Acrs
                  *   1) Decrementing prev's plen (already done above)
                  *   2) Deleting cur
                  */
-                cur = erase(cur);
+                cur = rt_container.erase(cur);
                 summarized = true;
 
                 /* Reduce cur by one so when it gets incremented by
@@ -286,7 +289,7 @@ namespace Acrs
              */
             if (summarized == true)
             {
-                summarizeMain();
+                summarizeMain(rt_container);
                 return true;
             }
             else
@@ -307,7 +310,7 @@ namespace Acrs
         };
 
     public:
-        bool summarize()
+        template <class T> bool summarize(T & rt_container)
         {
             if (getLogging() == true)
             {
@@ -315,7 +318,7 @@ namespace Acrs
             }
 
             log("* Main summarization:\n");
-            bool mainsum = summarizeMain();
+            bool mainsum = summarizeMain(rt_container);
 
             if (mainsum == false)
             {
@@ -323,14 +326,14 @@ namespace Acrs
             }
 
             log("* Overlap removal:\n");
-            bool overlapsum = summarizeOverlap();
+            bool overlapsum = summarizeOverlap(rt_container);
 
             if (overlapsum == false)
             {
                 log("*   No overlapping routes.\n");
             }
 
-            if ((mainsum | overlapsum) == true)
+            if ((mainsum || overlapsum) == true)
             {
                 log("* Finished. List was summarized.\n");
                 return true;
