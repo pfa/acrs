@@ -35,14 +35,14 @@
 
 #define OPTIONS "lhm46"
 
-template <typename T> bool getList(std::list<T> & summary, T & exroute,
-                   int numrts, char * p_rts[], int ipstr_len, int addr_family);
-template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
-              bool logging, bool print_metric, int ipstr_len, int addr_family);
+template <typename T> bool getList(T & rt_list, int numrts, char * p_rts[],
+                                   int ipstr_len, int addr_family);
+template <typename T> int runSummary(T & rt_list, int numrts, char * p_rts[],
+                                     bool logging, bool print_metric,
+                                     int ipstr_len, int addr_family);
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
               int ipstr_len, int addr_family);
-
-void usage(void);
+void usage();
 
 int main(int argc, char * argv[])
 {
@@ -112,15 +112,15 @@ int main(int argc, char * argv[])
 
     if (ipv4)
     {
-        IP::Route4 example("", 0);
-        retval = runSummary(example, argc - optind, &argv[optind], logging,
-                                print_metric, INET_ADDRSTRLEN, AF_INET);
+        std::list<IP::Route4> rt_list;
+        retval = runSummary(rt_list, argc - optind, &argv[optind], logging,
+                            print_metric, INET_ADDRSTRLEN, AF_INET);
     }
     else if (ipv6)
     {
-        IP::Route6 example("", 0);
-        retval = runSummary(example, argc - optind, &argv[optind], logging,
-                                print_metric, INET6_ADDRSTRLEN, AF_INET6);
+        std::list<IP::Route6> rt_list;
+        retval = runSummary(rt_list, argc - optind, &argv[optind], logging,
+                            print_metric, INET6_ADDRSTRLEN, AF_INET6);
     }
     else
     {
@@ -144,27 +144,29 @@ int main(int argc, char * argv[])
     }
 }
 
-template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
-               bool logging, bool print_metric, int ipstr_len, int addr_family)
+template <class T> int runSummary(T & rt_list,
+         int numrts, char * p_rts[], bool logging, bool print_metric,
+         int ipstr_len, int addr_family)
 {
     /* Get the summary type */
-    Acrs::Acrs<decltype(exroute)> summary;
+    Acrs::Acrs summary;
     summary.setLogging(logging);
 
-    if (getList(summary, exroute, numrts, p_rts, ipstr_len, addr_family) ==
-        false)
+    /* Fill a list with routes based on user input */
+    if (getList(rt_list, numrts, p_rts, ipstr_len, addr_family) == false)
     {
         fprintf(stderr, "Error: One or more invalid routes entered.\n");
         return 2;
     }
 
-    int summarized = summary.summarize();
+    /* Summarize the route list */
+    int summarized = summary.summarize(rt_list);
 
+    /* Print the results */
     if (print_metric == false)
     {
-        for (typename Acrs::Acrs<decltype(exroute)>::iterator iter =
-                                                           summary.begin();
-             iter != summary.end();
+        for (typename T::iterator iter = rt_list.begin();
+             iter != rt_list.end();
              iter++)
         {
             /* Cast to an IP address if metrics are not desired */
@@ -173,9 +175,8 @@ template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
     }
     else
     {
-        for (typename Acrs::Acrs<decltype(exroute)>::iterator iter =
-                                                           summary.begin();
-             iter != summary.end();
+        for (typename T::iterator iter = rt_list.begin();
+             iter != rt_list.end();
              iter++)
         {
             std::cout << *iter << std::endl;
@@ -185,7 +186,7 @@ template <typename T> int runSummary(T exroute, int numrts, char * p_rts[],
     return summarized;
 }
 
-template <typename T> bool getList(std::list<T> & summary, T & exroute,
+template <typename T> bool getList(T & rt_list,
                    int numrts, char * p_rts[], int ipstr_len, int addr_family)
 {
     char ipstr[ipstr_len];
@@ -203,7 +204,7 @@ template <typename T> bool getList(std::list<T> & summary, T & exroute,
             return false;
         }
 
-        T newrt(ipstr, plen_int, IP::PLEN, metric_int);
+        typename T::value_type newrt(ipstr, plen_int, IP::PLEN, metric_int);
         if (newrt.isValid() == false)
         {
             std::stringstream ss_plen;
@@ -239,7 +240,7 @@ template <typename T> bool getList(std::list<T> & summary, T & exroute,
         }
         else
         {
-            summary.push_back(newrt);
+            rt_list.push_back(newrt);
         }
     }
 
@@ -375,21 +376,21 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
     return true;
 }
 
-void usage(void)
+void usage()
 {
     fprintf(stderr,
             "Automatic classless route summarization (ACRS) demo program\n"
             "Usage:\n"
             "\n"
-            "       ./acrs-demo [-lmh] PREFIX [PREFIX ...]\n"
+            "       ./acrs-demo [-46lmh] PREFIX [PREFIX ...]\n"
             "\n"
             "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
             "\n"
             "       NETWORK is an IP address in dotted decimal format (e.g. 192.168.1.1).\n"
-            "       PREFLEN is the prefix length, a number between 0 and 32.\n"
+            "       PREFLEN is the prefix length.\n"
             "       METRIC is the route's metric and is optional (default 0).\n"
             "\n"
-            "       Example usage:  ./acrs-demo 192.168.0.0/24m1 192.168.1.0/24m1\n"
+            "       Example usage:  ./acrs-demo 192.168.0.0/24m1 192.168.1.0/24\n"
             "\n"
             "       Options:\n"
             "       -l    enables logging\n"
