@@ -128,8 +128,9 @@ namespace Acrs
         {
             bool summarized = false;
 
-            typename std::list<T>::iterator cur = this->begin();
+            sort(overlapCmp);
 
+            typename std::list<T>::iterator cur = this->begin();
             if (cur == this->end())
             {
                 return false;
@@ -320,8 +321,6 @@ namespace Acrs
             {
                 log("*   No routes affected by main summarization.\n");
             }
-
-            sort(overlapCmp);
 
             log("* Overlap removal:\n");
             bool overlapsum = summarizeOverlap();

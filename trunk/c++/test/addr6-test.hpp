@@ -15,12 +15,8 @@ private:
     void setAddrGood();
     void opAnd();
     void opOr();
-    void op1Complement();
     void opLessThan();
-    void opGreaterThan();
-    void opEqual();
-    void opNotEqual();
-    void ordering();
+    void getFuncs();
 
     /* Helper functions */
     static bool addr_equals(const IP::Addr6 & addr1,
@@ -30,14 +26,8 @@ public:
     Addr6Test()
     {
         TEST_ADD(Addr6Test::setAddrGood);
-        TEST_ADD(Addr6Test::opAnd);
-        TEST_ADD(Addr6Test::opOr);
-        TEST_ADD(Addr6Test::op1Complement);
         TEST_ADD(Addr6Test::opLessThan);
-        TEST_ADD(Addr6Test::opGreaterThan);
-        TEST_ADD(Addr6Test::opEqual);
-        TEST_ADD(Addr6Test::opNotEqual);
-        TEST_ADD(Addr6Test::ordering);
+        TEST_ADD(Addr6Test::getFuncs);
     }
 };
 

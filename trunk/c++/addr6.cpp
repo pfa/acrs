@@ -318,7 +318,7 @@ namespace IP
         const uint8_t * p_end = &(mask.s6_addr[sizeof(mask.s6_addr) - 1]);
         int plen = 0;
 
-        for (uint8_t * p_mask_byte = const_cast<uint8_t *>(mask.s6_addr);
+        for (const uint8_t * p_mask_byte = mask.s6_addr;
              p_mask_byte <= p_end;
              p_mask_byte++)
         {
@@ -351,14 +351,13 @@ namespace IP
         /* Init mask to all 0s */
         memset(&mask.s6_addr, 0, sizeof(mask.s6_addr));
 
-        for (count = 0; count != fullbytes; count++)
-        {
-            mask.s6_addr[count] = 255;
-        }
+        /* Turn on each "all 1's" byte */
+        memset(&mask.s6_addr, 0xFF, fullbytes);
 
-        int extra_bytes = plen % 8;
+        /* Number of bits set to 1 in the last non-zero byte */
+        int extra_bits = plen % 8;
 
-        if (extra_bytes == 0)
+        if (extra_bits == 0)
         {
             return mask;
         }
@@ -366,15 +365,15 @@ namespace IP
         /* Magic number 8 = number of bits in a byte
          *
          * In the last non-zero mask byte, flip on a number of bits equal to
-         * extra bytes from the prefix length.
+         * extra bits from the prefix length.
          */
-        mask.s6_addr[count] = ~((1 << ((8 - (extra_bytes)) + 1)) - 1);
+        mask.s6_addr[fullbytes] = ~((1 << (8 - extra_bits)) - 1);
 
         return mask;
     }
 
     bool Addr6::operator<(const Addr6 & other) const
     {
-        return getNetFormAddr() < other.getNetFormAddr();
+        return getNetworkN().nbo() < other.getNetworkN().nbo();
     }
 }
