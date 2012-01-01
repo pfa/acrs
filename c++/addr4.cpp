@@ -135,9 +135,9 @@ namespace IP
             return false;
         }
 
-        /* XXX ??? */
+        /* XXX Fix me */
         m_plen = smtopl(m_mask_net_form.getAddr());
-        m_mask_net_form = m_mask_net_form;
+        //m_mask_net_form =
         m_snmask_pres_form = buf;
 
         setMaskSuccess();
@@ -374,7 +374,6 @@ namespace IP
     /* Convert to NBO then compare network addresses */
     bool Addr4::operator<(const Addr4 & other) const
     {
-        return Addr4NetForm(getNetworkN()).nbo() <
-               Addr4NetForm(other.getNetworkN()).nbo();
+        return getNetworkN().nbo() < other.getNetworkN().nbo();
     }
 };

@@ -46,7 +46,7 @@ namespace IP
         in6_addr pltosm(const uint32_t plen) const;
 
     public:
-        int getMaxPlen(void) const { return MAX_PLEN; };
+        int getMaxPlen() const { return MAX_PLEN; };
 
         bool setAddr(const in6_addr & addr);
         bool setAddr(const std::string & addr);
