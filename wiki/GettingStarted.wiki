@@ -4,15 +4,15 @@
 
 = Introduction =
 
+ACRS is a library for IPv4 and IPv6 route summarization at _classless_ address boundaries.
+
 Typically, route summarization is handled manually, or automatically at classful address boundaries. ACRS is unique in that it handles automatic route summarization in a classless manner. This makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
 
-==Examples==
+==Example==
 
-These simple examples briefly demonstrate what the ACRS library does.
+This example briefly demonstrates what the ACRS library does.
 
-===Example 1===
-
-If ACRS is given these prefixes:
+If ACRS is given these IPv4 prefixes:
 
 {{{
     192.168.1.0/25
@@ -25,20 +25,9 @@ The closest fit summary prefix is identified:
     192.168.1.0/24
 }}}
 
-===Example 2 (with metrics)===
+An arbitrary number of prefixes may be submitted for summarization. ACRS also has the ability to honor routing metrics when summarizing routes. See [GettingStarted#Using_the_demo] below for more examples.
 
-ACRS supports distinguishing between routing metrics. Given these routes (prefix plus a metric):
-
-{{{
-    192.168.1.0/25 metric 0
-    192.168.1.128/25 metric 1
-}}}
-
-No summarization is performed. Metrics must match for routes to be automatically summarized. If the metrics matched, they would be summarized exactly as in the first example.
-
-Although these basic examples use only two routes, an arbitrary number of prefixes may be submitted for summarization. 
-
-The source code here provides two implementations of ACRS, one in C++ and one in python. These contain a generic IPv4 address and route class, the ACRS class, and a command line based demonstration program. Conceptually, the rules used for IPv4 summarization extend to IPv6 prefixes as well, but currently only IPv4 is implemented. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
+The source code here provides two implementations of ACRS, one in C++ and one in python. The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
 
 = Explained =
 
@@ -55,11 +44,12 @@ Once the list is sorted, each route in the list is compared with the next route 
   # Their prefix lengths must match.
   # Their metrics must match.
   # The network addresses must not match.
+  # The prefix lengths must not be zero.
   # Temporarily decrease the lower route's prefix length by 1. Get its broadcast address, then apply the original prefix length. The resulting network address must match the higher route's network address.
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using address space NOT specified by at least one route.
 
-If a route fails step 3 above, one of the routes is removed, since they are duplicates (equal prefix lengths, metrics, and network addresses). Technically this falls under the realm of overlap removal, but it is handled here since it has to be checked anyway. Another check in the code is that the prefix length must not equal 0 for summarization to occur -- otherwise reducing the prefix length by 1 in step 4 would fail.
+If two routes fail step 3 above, one of the routes is removed, since they are duplicates (equal prefix lengths, metrics, and network addresses). Technically this falls under the realm of overlap removal, but the options are to skip these routes and let overlap removal handle it, or get it out of the way now. Handling duplicates in main summarization means sorting the list will take less time when it recurses, and saves making the same check a second time during overlap removal. Another check in the code is that the prefix length must not equal 0 for summarization to occur -- otherwise reducing the prefix length by one in step 5 would fail.
 
 Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in [GettingStarted#Why_use_it?], below.)
 
@@ -96,34 +86,36 @@ Another possible use for ACRS would be in routing protocols for networks where r
 
 = Obtaining and building =
 
-You can download the latest source either from the tarball on the Downloads tab or using subversion.
+Stable code is available from the tar file on the Downloads tab, and code-in-progress is available from subversion.
 
-== From the tar file ==
+== Downloading the tar file ==
 
 Steps:
-  # Install a C++ compiler
+  # Install a C++ compiler (g++ is assumed, which must be version 4.4 or greater)
   # Download the tarball
   # Extract the source code
   # Run make
+  # Use the demo program
 
 For Debian/Ubuntu systems:
 
 {{{
 apt-get install g++
-wget http://acrs.googlecode.com/files/acrs-r75.tar.gz # Replace r75 with the latest version
-tar -xzf acrs-r75.tar.gz
-cd acrs/c++
+wget http://acrs.googlecode.com/files/acrs-r121.tar.gz # Replace r121 with the latest version
+tar -xzf acrs-r121.tar.gz
+cd acrs_r121/c++
 make
 ./acrs-demo
 }}}
 
-== From subversion ==
+== Downloading from subversion ==
 
 Steps:
   # Install subversion
-  # Install a C++ compiler
+  # Install a C++ compiler (g++ is assumed, which must be version 4.4 or greater)
   # Download the code from googlecode using subversion
   # Run make
+  # Run the demo program
 
 For Debian/Ubuntu systems:
 
@@ -140,14 +132,14 @@ make
 After compiling, try this with the demo:
 
 {{{
-./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+# ./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
 10.0.0.0/24 in 0
 }}}
 
-This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (currently adding metrics is only supported in the demo program available on subversion, not in the r75 tar file). This is optional, and can be used for some prefixes and omitted for others. For example:
+This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (not available in the revision 75 tar file or earlier). This is optional, and can be used for some prefixes and omitted for others. For example:
 
 {{{
-./acrs-demo 10.0.0.0/26m1 10.0.0.64/26 10.0.0.128/25
+# ./acrs-demo 10.0.0.0/26m1 10.0.0.64/26 10.0.0.128/25
 10.0.0.0/26 in 1
 10.0.0.64/26 in 0
 10.0.0.128/25 in 0
@@ -155,18 +147,20 @@ This shows three input routes being summarized, and the summarized route being p
 
 Notice that the first route had a metric of 1 assigned to it on the command line (10.0.0.0/26m1), which prevented the routes from being summarized. See the rules in the [GettingStarted#Explained] section for more information on how differing metrics affect summarization.
 
-You can enable logging using the -l flag. This prints information about how and when routes are summarized. For example:
+Logging can be enabled using the -l flag. This prints information about how and when routes are summarized. For example:
 
 {{{
-./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
+# ./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
 * Main summarization:
 *   Pass 1
-*     Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0'
-*     Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0'
+*     Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0
+*     Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0
+*     Removed duplicate prefix: '10.0.0.0/16 in 0'
 *   Pass 2
-*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
+*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0
+*   Pass 3
+*     No routes to summarize on this pass.
 * Overlap removal:
-*   Removing '10.0.0.0/16 in 0', which falls within '10.0.0.0/16 in 0'
 *   Removing '10.0.0.0/23 in 0', which falls within '10.0.0.0/16 in 0'
 * Finished. List was summarized.
 10.0.0.0/16 in 0
@@ -174,33 +168,63 @@ You can enable logging using the -l flag. This prints information about how and 
 
 The "Pass X" statements in main summarization identify how many times the list of routes was re-ran through main summarization before it was fully summarized. Only one pass of overlap removal is necessary.
 
+IPv6 is fully supported in r121 and above. To make the demo program accept IPv6 addresses, use the -6 option:
+
+{{{
+# ./acrs-demo -6 2001:db8::1/128m1 2001:db8::0/128m1
+2001:db8::/127 in 1
+}}}
+
+Unless the -6 option is given, IPv4 is assumed. There is a -4 option to explicitly enable IPv4, but since IPv4 is the default using -4 isn't necessary. If IPv4 routes are entered when IPv6 is enabled (or vice versa), the demo program will print an error and exit.
+
 For non-routing purposes (such as for access lists), lists of individual IP addresses can be summarized by ignoring the metric and giving each address a /32 mask:
 
 {{{
-./acrs-demo 1.1.1.7/32 1.1.1.6/32 1.1.1.4/32 1.1.1.5/32
+# ./acrs-demo 1.1.1.7/32 1.1.1.6/32 1.1.1.4/32 1.1.1.5/32
 1.1.1.4/30 in 0
 }}}
 
 These networks will not be summarized:
 
 {{{
-./acrs-demo 1.1.1.5/32 1.1.1.6/32
+# ./acrs-demo 1.1.1.5/32 1.1.1.6/32
 1.1.1.5/32 in 0
 1.1.1.6/32 in 0
 }}}
 
-Why? 1.1.1.5/31 is not a network ID (1.1.1.5/31 is a host address on the network 1.1.1.4/31). In the code, this is checked by ensuring that a potential summary route's network address is equal to the lower route's network address. The potential summary route, 1.1.1.5/31, has a network address of 1.1.1.4. This is not equal to the network address of the lower route (1.1.1.5), so the routes cannot be summarized.
+Why? The potential summary prefix, 1.1.1.5/31, is not a network ID (1.1.1.5/31 is an address on the network 1.1.1.4/31). In the code, this is checked by ensuring that a potential summary route's network address is equal to the lower route's network address. The prefix 1.1.1.5/31 has a network address of 1.1.1.4. This is not equal to the network address of the lower route (1.1.1.5), so the routes cannot be summarized.
 
 The following will work, however:
 
 {{{
-./acrs-demo 1.1.1.5/32 1.1.1.4/32
+# ./acrs-demo 1.1.1.5/32 1.1.1.4/32
 1.1.1.4/31 in 0
 }}}
 
-The order of routes on the command line doesn't matter as they are sorted as needed by the library.
+The order of routes on the command line doesn't matter since they are sorted as needed by the library.
 
-= Partial TODO =
+Example use of -m option to suppress metrics from being printed. Any metric arguments given on the command line are still used by the Acrs library. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further:
 
-  # Would be nice to make the code fully usable in both C and C++ programs
-  # Write a howto on using this with IPSet
+{{{
+# ./acrs-demo -4 -m 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
+10.0.0.0/23
+10.0.2.0/23
+}}}
+
+The -m option does not affect logging messages either:
+
+{{{
+# ./acrs-demo -4 -m -l 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
+* Main summarization:
+*   Pass 1
+*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0
+*   Pass 2
+*     No routes to summarize on this pass.
+* Overlap removal:
+*   No overlapping routes.
+* Finished. List was summarized.
+10.0.0.0/23
+10.0.2.0/23
+}}}
+
+In the code, this illustrates that a Route4/6 object can be type-cast into an Addr4/6 object.
