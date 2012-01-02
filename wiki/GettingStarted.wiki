@@ -100,12 +100,12 @@ Steps:
 For Debian/Ubuntu systems:
 
 {{{
-apt-get install g++
-wget http://acrs.googlecode.com/files/acrs-r121.tar.gz # Replace r121 with the latest version
-tar -xzf acrs-r121.tar.gz
-cd acrs_r121/c++
-make
-./acrs-demo
+# sudo apt-get install g++
+# wget http://acrs.googlecode.com/files/acrs-r121.tar.gz # Use the newest filename
+# tar -xzf acrs-r121.tar.gz
+# cd acrs_r121/c++
+# make
+# ./acrs-demo
 }}}
 
 == Downloading from subversion ==
@@ -120,11 +120,11 @@ Steps:
 For Debian/Ubuntu systems:
 
 {{{
-apt-get install subversion g++
-svn checkout http://acrs.googlecode.com/svn/trunk/ acrs-read-only
-cd acrs-read-only/c++
-make
-./acrs-demo
+# sudo apt-get install subversion g++
+# svn checkout http://acrs.googlecode.com/svn/trunk/ acrs-read-only
+# cd acrs-read-only/c++
+# make
+# ./acrs-demo
 }}}
 
 = Using the demo =
@@ -153,11 +153,11 @@ Logging can be enabled using the -l flag. This prints information about how and 
 # ./acrs-demo -l 10.0.1.0/26 10.0.1.64/26 10.0.0.0/24 10.0.1.128/25 10.0.0.0/16 10.0.0.0/16
 * Main summarization:
 *   Pass 1
-*     Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0
-*     Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0
+*     Summarized '10.0.1.0/26 in 0' and '10.0.1.64/26 in 0' into '10.0.1.0/25 in 0'
+*     Summarized '10.0.1.0/25 in 0' and '10.0.1.128/25 in 0' into '10.0.1.0/24 in 0'
 *     Removed duplicate prefix: '10.0.0.0/16 in 0'
 *   Pass 2
-*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0
+*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
 *   Pass 3
 *     No routes to summarize on this pass.
 * Overlap removal:
@@ -171,7 +171,7 @@ The "Pass X" statements in main summarization identify how many times the list o
 IPv6 is fully supported in r121 and above. To make the demo program accept IPv6 addresses, use the -6 option:
 
 {{{
-# ./acrs-demo -6 2001:db8::1/128m1 2001:db8::0/128m1
+# ./acrs-demo -6 2001:db8::1/128m1 2001:db8::/128m1
 2001:db8::/127 in 1
 }}}
 
@@ -203,7 +203,7 @@ The following will work, however:
 
 The order of routes on the command line doesn't matter since they are sorted as needed by the library.
 
-Example use of -m option to suppress metrics from being printed. Any metric arguments given on the command line are still used by the Acrs library. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further:
+Below is an example of the -m option being used to suppress metrics from being shown when the summarized route list is printed. Metric arguments given on the command line are still used by the Acrs library for the purposes of summarization. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further, although they would be if the metrics were ignored:
 
 {{{
 # ./acrs-demo -4 -m 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
@@ -217,7 +217,7 @@ The -m option does not affect logging messages either:
 # ./acrs-demo -4 -m -l 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
 * Main summarization:
 *   Pass 1
-*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0
+*     Summarized '10.0.0.0/24 in 0' and '10.0.1.0/24 in 0' into '10.0.0.0/23 in 0'
 *   Pass 2
 *     No routes to summarize on this pass.
 * Overlap removal:
@@ -227,4 +227,4 @@ The -m option does not affect logging messages either:
 10.0.2.0/23
 }}}
 
-In the code, this illustrates that a Route4/6 object can be type-cast into an Addr4/6 object.
+This can be useful if output is fed into another program that does not understand the "in X" metric messages. In the code, this also illustrates that a Route4/6 object can be type-cast into an Addr4/6 object.
