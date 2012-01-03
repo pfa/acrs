@@ -178,7 +178,7 @@ Why? The potential summary prefix, 1.1.1.5/31, is not a network ID (1.1.1.5/31 i
 For the same reason as above, these prefixes will not be summarized:
 
 {{{
-./acrs-demo 10.10.10.4/30 10.10.10.8/30
+# ./acrs-demo 10.10.10.4/30 10.10.10.8/30
 10.10.10.4/30 in 0
 10.10.10.8/30 in 0
 }}}
