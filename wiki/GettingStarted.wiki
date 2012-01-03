@@ -4,30 +4,11 @@
 
 = Introduction =
 
-ACRS is a library for IPv4 and IPv6 route summarization at _classless_ address boundaries.
-
-Typically, route summarization is handled manually, or automatically at classful address boundaries. ACRS is unique in that it handles automatic route summarization in a classless manner. This makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
-
-==Example==
-
-This example briefly demonstrates what the ACRS library does.
-
-If ACRS is given these IPv4 prefixes:
-
-{{{
-    192.168.1.0/25
-    192.168.1.128/25
-}}}
-
-The closest fit summary prefix is identified:
-
-{{{
-    192.168.1.0/24
-}}}
+ACRS is a library for IPv4 and IPv6 route summarization. It is unique in that it handles automatic route summarization in a classless manner. For example, this means ACRS can summarize 10.10.10.8/30 and 10.10.10.12/30 into 10.10.10.8/29, whereas typical classful summarization would summarize all the way down to 10.0.0.0/8. The granularity provided by ACRS makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
 
 An arbitrary number of prefixes may be submitted for summarization. ACRS also has the ability to honor routing metrics when summarizing routes. See [GettingStarted#Using_the_demo] below for more examples.
 
-The source code here provides two implementations of ACRS, one in C++ and one in python. The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
+The source code here provides two implementations of ACRS, one in C++ and one in python. The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program . Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
 
 = Explained =
 
@@ -184,7 +165,7 @@ For non-routing purposes (such as for access lists), lists of individual IP addr
 1.1.1.4/30 in 0
 }}}
 
-These networks will not be summarized:
+These prefixes will not be summarized:
 
 {{{
 # ./acrs-demo 1.1.1.5/32 1.1.1.6/32
@@ -194,16 +175,25 @@ These networks will not be summarized:
 
 Why? The potential summary prefix, 1.1.1.5/31, is not a network ID (1.1.1.5/31 is an address on the network 1.1.1.4/31). In the code, this is checked by ensuring that a potential summary route's network address is equal to the lower route's network address. The prefix 1.1.1.5/31 has a network address of 1.1.1.4. This is not equal to the network address of the lower route (1.1.1.5), so the routes cannot be summarized.
 
+For the same reason as above, these prefixes will not be summarized:
+
+{{{
+./acrs-demo 10.10.10.4/30 10.10.10.8/30
+10.10.10.4/30 in 0
+10.10.10.8/30 in 0
+}}}
+
 The following will work, however:
 
 {{{
-# ./acrs-demo 1.1.1.5/32 1.1.1.4/32
+# ./acrs-demo 1.1.1.5/32 1.1.1.4/32 10.10.10.12/30 10.10.10.8/30
 1.1.1.4/31 in 0
+10.10.10.8/29 in 0
 }}}
 
 The order of routes on the command line doesn't matter since they are sorted as needed by the library.
 
-Below is an example of the -m option being used to suppress metrics from being shown when the summarized route list is printed. Metric arguments given on the command line are still used by the Acrs library for the purposes of summarization. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further, although they would be if the metrics were ignored:
+Below is an example of the -m option being used to suppress metrics from being shown when the summarized route list is printed. Metric arguments given on the command line are still used by the ACRS library for the purposes of summarization. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further, although they would be if the metrics were ignored:
 
 {{{
 # ./acrs-demo -4 -m 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
@@ -227,4 +217,4 @@ The -m option does not affect logging messages either:
 10.0.2.0/23
 }}}
 
-This can be useful if output is fed into another program that does not understand the "in X" metric messages. In the code, this also illustrates that a Route4/6 object can be type-cast into an Addr4/6 object.
+The -m option can be useful if output is fed into another program that does not understand the "in X" metric messages and instead expects a sequence of newline-delimited prefixes in CIDR notation. In the demo program code, this also illustrates that a Route4/6 object can be type-cast into an Addr4/6 object.
