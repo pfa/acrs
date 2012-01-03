@@ -8,7 +8,7 @@ ACRS is a library for IPv4 and IPv6 route summarization. It is unique in that it
 
 An arbitrary number of prefixes may be submitted for summarization. ACRS also has the ability to honor routing metrics when summarizing routes. See [GettingStarted#Using_the_demo] below for more examples.
 
-The source code here provides two implementations of ACRS, one in C++ and one in python. The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program . Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
+The source code here provides two implementations of ACRS, one in C++ and one in python. The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program. Included with the python source is a CGI script and an example web page for demonstrations of ACRS on web pages.
 
 = Explained =
 
@@ -30,7 +30,9 @@ Once the list is sorted, each route in the list is compared with the next route 
 
 If the above conditions are met, the two routes can be summarized by discarding the higher route and decreasing the lower route's prefix length by one. Using recursion, this process will summarize all routes within the list as much as possible without using address space NOT specified by at least one route.
 
-If two routes fail step 3 above, one of the routes is removed, since they are duplicates (equal prefix lengths, metrics, and network addresses). Technically this falls under the realm of overlap removal, but the options are to skip these routes and let overlap removal handle it, or get it out of the way now. Handling duplicates in main summarization means sorting the list will take less time when it recurses, and saves making the same check a second time during overlap removal. Another check in the code is that the prefix length must not equal 0 for summarization to occur -- otherwise reducing the prefix length by one in step 5 would fail.
+If two routes fail step 3 above, one of the routes is removed, since they are duplicates (equal prefix lengths, metrics, and network addresses). Technically this falls under the realm of overlap removal, but the options are to skip these routes and let overlap removal handle it, or get it out of the way now. Handling duplicates in main summarization means sorting the list will take less time when it recurses, and saves making the same check a second time during overlap removal.
+
+Another check in the code is that the prefix length must not equal 0 for summarization to occur -- otherwise reducing the prefix length by one in step 5 would fail. (And, naturally, a route with a prefix length of zero cannot be made into a less specific summary address anyway.)
 
 Once main summarization is finished, overlap removal gets rid of routes that specify identical address space. For example, 10.0.0.0/8 and 10.250.24.0/24 specify overlapping address space, so the less specific prefix can be used. (If used for routing purposes, note that this can only be done when the metric of the less specific route is better than the metric of the more specific route. This is discussed in [GettingStarted#Why_use_it?], below.)
 
@@ -47,7 +49,7 @@ Once the list is sorted, each route is again compared to the next route in the l
 
 When two routes are found to overlap, the higher network is removed from the list.
 
-This is necessary because main summarization's rules for summarizing routes will not catch overlapping address space.
+Overlap removal is necessary because main summarization's rules for summarizing routes will not catch overlapping address space.
 
 One additional note, which may come up when using the demo program:
 
