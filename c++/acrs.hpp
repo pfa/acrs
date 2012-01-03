@@ -345,8 +345,15 @@ namespace Acrs
             }
         };
 
-        void setLogging(bool logging) { m_logging = logging; };
-        bool getLogging() { return m_logging; };
+        void setLogging(bool logging)
+        {
+            m_logging = logging;
+        };
+
+        bool getLogging()
+        {
+            return m_logging;
+        };
 
         /* Constructor */
         Acrs(std::ostream & os = std::cout, bool logging = false)

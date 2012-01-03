@@ -35,11 +35,11 @@
 
 #define OPTIONS "lhm46"
 
-template <typename T> bool getList(T & rt_list, int numrts, char * p_rts[],
-                                   int ipstr_len, int addr_family);
-template <typename T> int runSummary(T & rt_list, int numrts, char * p_rts[],
-                                     bool logging, bool print_metric,
-                                     int ipstr_len, int addr_family);
+template <class T> bool getList(T & rt_list, int numrts, char * p_rts[],
+                                int ipstr_len, int addr_family);
+template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
+                                  bool logging, bool print_metric,
+                                  int ipstr_len, int addr_family);
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
               int ipstr_len, int addr_family);
 void usage();
@@ -144,11 +144,10 @@ int main(int argc, char * argv[])
     }
 }
 
-template <class T> int runSummary(T & rt_list,
-         int numrts, char * p_rts[], bool logging, bool print_metric,
-         int ipstr_len, int addr_family)
+template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
+                                  bool logging, bool print_metric,
+                                  int ipstr_len, int addr_family)
 {
-    /* Get the summary type */
     Acrs::Acrs summary;
     summary.setLogging(logging);
 
@@ -186,8 +185,8 @@ template <class T> int runSummary(T & rt_list,
     return summarized;
 }
 
-template <typename T> bool getList(T & rt_list,
-                   int numrts, char * p_rts[], int ipstr_len, int addr_family)
+template <class T> bool getList(T & rt_list, int numrts, char * p_rts[],
+                                int ipstr_len, int addr_family)
 {
     char ipstr[ipstr_len];
     int plen_int;
@@ -269,7 +268,7 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
             addr_example = "1.1.1.0/24";
             break;
         case AF_INET6:
-            addr_example = "feee::1/64";
+            addr_example = "2001:db8::/64";
             break;
         default:
             assert(false);
@@ -386,20 +385,21 @@ void usage()
             "\n"
             "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
             "\n"
-            "       NETWORK is an IP address in dotted decimal format (e.g. 192.168.1.1).\n"
+            "       NETWORK is an IPv4 or IPv6 address.\n"
             "       PREFLEN is the prefix length.\n"
-            "       METRIC is the route's metric and is optional (default 0).\n"
+            "       METRIC is the route's metric (this is optional, default is 0).\n"
             "\n"
             "       Example usage:  ./acrs-demo 192.168.0.0/24m1 192.168.1.0/24\n"
+            "                       ./acrs-demo -6 2001:db8::/128 2001:db8::1/128\n"
             "\n"
             "       Options:\n"
-            "       -l    enables logging\n"
-            "       -m    suppresses metric from being printed (\"... in 0\") in the\n"
+            "       -l    Enables logging\n"
+            "       -m    Suppresses metric from being printed (\"... in 0\") in the\n"
             "             summary output. Does not affect logging messages or how routes\n"
             "             are summarized.\n"
             "       -4    Input routes are IPv4 (default)\n"
             "       -6    Input routes are IPv6\n"
-            "       -h    displays this help message\n"
+            "       -h    Displays this help message\n"
             "\n"
             "Other useful information is available on the wiki at: acrs.googlecode.com\n");
     return;
