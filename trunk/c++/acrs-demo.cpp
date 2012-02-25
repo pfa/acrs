@@ -33,65 +33,103 @@
 #include "route6.hpp"
 #include "addr.hpp"
 
-#define OPTIONS "lhm46"
+#define OPTIONS "lh46m:"
 
 template <class T> bool getList(T & rt_list, int numrts, char * p_rts[],
                                 int ipstr_len, int addr_family);
 template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
-                                  bool logging, bool print_metric,
+                                  bool logging, int metric_style,
                                   int ipstr_len, int addr_family);
 bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
               int ipstr_len, int addr_family);
+bool validateRoute(const char * p_prefix);
+int findMetricStyle(const char * metric);
+std::string getMetricStyleString(int spaces);
 void usage();
+
+#define METRIC_STYLES \
+    STYLE(METRIC_STYLE_NONE, none, \
+          "Do not print a metric") \
+    STYLE(METRIC_STYLE_FULL, full, \
+          "Print metric X as '... in X' (default)") \
+    STYLE(METRIC_STYLE_BRIEF, brief, \
+          "Print metric X as '...mX'")
+
+#define STYLE(longname, shortname, desc) longname,
+enum
+{
+    METRIC_STYLES
+    METRIC_STYLE_INVALID
+};
+#undef STYLE
+
+typedef struct metricType
+{
+    std::string name;
+    std::string desc;
+} metricType;
+
+#define STYLE(longname, shortname, desc) { # shortname, desc },
+static metricType METRIC_TYPES[] =
+{
+    METRIC_STYLES
+};
+#undef STYLE
 
 int main(int argc, char * argv[])
 {
     extern int optind;
     char c;
-    bool print_metric = true;
     bool logging = false;
     bool ipv4 = false;
     bool ipv6 = false;
+    int metric_style = METRIC_STYLE_FULL;
 
     while ((c = getopt(argc, argv, OPTIONS)) != -1)
     {
         switch (c)
         {
-            case 'm':
-                print_metric = false;
-                break;
-            case 'l':
-                logging = true;
-                break;
-            case '4':
-                if (ipv6 == true)
-                {
-                    fprintf(stderr, "Error: -4 and -6 are mutually "
-                                    "exclusive.\n");
-                    return 2;
-                }
-                else
-                {
-                    ipv4 = true;
-                }
-                break;
-            case '6':
-                if (ipv4 == true)
-                {
-                    fprintf(stderr, "Error: -4 and -6 are mutually "
-                                    "exclusive.\n");
-                    return 2;
-                }
-                else
-                {
-                    ipv6 = true;
-                }
-                break;
-            case 'h': /* Fall through */
-            default:
-                usage();
+        case 'm':
+            metric_style = findMetricStyle(optarg);
+            if (metric_style == METRIC_STYLE_INVALID)
+            {
+                fprintf(stderr, "Invalid metric style: %s\n"
+                                "%s", optarg, getMetricStyleString(2).c_str());
                 return 2;
-                break;
+            }
+            break;
+        case 'l':
+            logging = true;
+            break;
+        case '4':
+            if (ipv6 == true)
+            {
+                fprintf(stderr, "Error: -4 and -6 are mutually "
+                                "exclusive.\n");
+                return 2;
+            }
+            else
+            {
+                ipv4 = true;
+            }
+            break;
+        case '6':
+            if (ipv4 == true)
+            {
+                fprintf(stderr, "Error: -4 and -6 are mutually "
+                                "exclusive.\n");
+                return 2;
+            }
+            else
+            {
+                ipv6 = true;
+            }
+            break;
+        case 'h': /* Fall through */
+        default:
+            usage();
+            return 2;
+            break;
         }
     }
 
@@ -114,13 +152,13 @@ int main(int argc, char * argv[])
     {
         std::list<IP::Route4> rt_list;
         retval = runSummary(rt_list, argc - optind, &argv[optind], logging,
-                            print_metric, INET_ADDRSTRLEN, AF_INET);
+                            metric_style, INET_ADDRSTRLEN, AF_INET);
     }
     else if (ipv6)
     {
         std::list<IP::Route6> rt_list;
         retval = runSummary(rt_list, argc - optind, &argv[optind], logging,
-                            print_metric, INET6_ADDRSTRLEN, AF_INET6);
+                            metric_style, INET6_ADDRSTRLEN, AF_INET6);
     }
     else
     {
@@ -145,7 +183,7 @@ int main(int argc, char * argv[])
 }
 
 template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
-                                  bool logging, bool print_metric,
+                                  bool logging, int metric_style,
                                   int ipstr_len, int addr_family)
 {
     Acrs::Acrs summary;
@@ -162,8 +200,9 @@ template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
     int summarized = summary.summarize(rt_list);
 
     /* Print the results */
-    if (print_metric == false)
+    switch (metric_style)
     {
+    case METRIC_STYLE_NONE:
         for (typename T::iterator iter = rt_list.begin();
              iter != rt_list.end();
              iter++)
@@ -171,15 +210,31 @@ template <class T> int runSummary(T & rt_list, int numrts, char * p_rts[],
             /* Cast to an IP address if metrics are not desired */
             std::cout << *(dynamic_cast<IP::Addr*>(&(*iter))) << std::endl;
         }
-    }
-    else
-    {
+
+        break;
+    case METRIC_STYLE_FULL:
         for (typename T::iterator iter = rt_list.begin();
              iter != rt_list.end();
              iter++)
         {
             std::cout << *iter << std::endl;
         }
+
+        break;
+    case METRIC_STYLE_BRIEF:
+        for (typename T::iterator iter = rt_list.begin();
+             iter != rt_list.end();
+             iter++)
+        {
+            std::cout << iter->getAddrP()
+                      << "/" << iter->getPlen()
+                      << "m" << iter->getMetric()
+                      << std::endl;
+        }
+
+        break;
+    default:
+        assert(false);
     }
 
     return summarized;
@@ -375,13 +430,47 @@ bool getRoute(char * p_prefix, char * ipstr, int * plen_int, int * metric_int,
     return true;
 }
 
+int findMetricStyle(const char * requested_name)
+{
+    int i;
+
+    for (i = 0; i != METRIC_STYLE_INVALID; i++)
+    {
+        const char * valid_name = METRIC_TYPES[i].name.c_str();
+        if (strcasecmp(requested_name, valid_name) == 0)
+        {
+            break;
+        }
+    }
+
+    /* Return the index of the style (maps to the enum value) */
+    return i;
+}
+
+std::string getMetricStyleString(int spaces)
+{
+    std::string s = "";
+
+    for (int i = 0; i != METRIC_STYLE_INVALID; i++)
+    {
+        for (int count = 0; count <= spaces; count++)
+        {
+            s += " ";
+        }
+
+        s += METRIC_TYPES[i].name + ": " + METRIC_TYPES[i].desc + "\n";
+    }
+
+    return s;
+}
+
 void usage()
 {
     fprintf(stderr,
             "Automatic classless route summarization (ACRS) demo program\n"
             "Usage:\n"
             "\n"
-            "       ./acrs-demo [-46lmh] PREFIX [PREFIX ...]\n"
+            "       ./acrs-demo [-46lh] [-m STYLE] PREFIX [PREFIX ...]\n"
             "\n"
             "       PREFIX consists of <NETWORK>/<PREFLEN>[m<METRIC>]\n"
             "\n"
@@ -394,13 +483,13 @@ void usage()
             "\n"
             "       Options:\n"
             "       -l    Enables logging\n"
-            "       -m    Suppresses metric from being printed (\"... in 0\") in the\n"
-            "             summary output. Does not affect logging messages or how routes\n"
-            "             are summarized.\n"
             "       -4    Input routes are IPv4 (default)\n"
             "       -6    Input routes are IPv6\n"
             "       -h    Displays this help message\n"
-            "\n"
-            "Other useful information is available on the wiki at: acrs.googlecode.com\n");
+            "       -m STYLE  Modifies the format of the metric message (\"... in 0\")\n"
+            "             in summary output. Does not affect logging messages or how routes\n"
+            "             are summarized. Valid metric styles:\n"
+            "%s\n"
+            "Other useful information is available on the wiki at: acrs.googlecode.com\n", getMetricStyleString(15).c_str());
     return;
 }
