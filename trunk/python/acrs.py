@@ -32,8 +32,10 @@ def summarize(rtlist):
             raise ValueError(i)
         i += 1
 
-    rtlist, summarized = _summarize_main(rtlist)
-    return _remove_overlap(rtlist)
+    rtlist, summarized_main = _summarize_main(rtlist)
+    rtlist, summarized_overlap = _remove_overlap(rtlist)
+
+    return rtlist, (summarized_main or summarized_overlap)
 
 def _compare_main(rt1, rt2):
         if (rt1.getMetric() < rt2.getMetric()):
@@ -168,9 +170,9 @@ def _remove_overlap(rtlist):
 
         if (_overlapping(low, high) == True):
             low = high
+            summarized = True
             continue
 
-        summarized = True
         newrts.append(high)
 
         low = high
