@@ -149,7 +149,7 @@ Logging can be enabled using the -l flag. This prints information about how and 
 10.0.0.0/16 in 0
 }}}
 
-The "Pass X" statements in main summarization identify how many times the list of routes was re-ran through main summarization before it was fully summarized. Only one pass of overlap removal is necessary.
+The "Pass X" statements in main summarization identify how many times the list of routes was re-run through main summarization before it was fully summarized. Only one pass of overlap removal is necessary.
 
 IPv6 is fully supported in r121 and above. To make the demo program accept IPv6 addresses, use the -6 option:
 
