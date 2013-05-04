@@ -195,7 +195,9 @@ The following will work, however:
 
 The order of routes on the command line doesn't matter since they are sorted as needed by the library.
 
-Below is an example of the -m option being used to suppress metrics from being shown when the summarized route list is printed. Metric arguments given on the command line are still used by the ACRS library for the purposes of summarization. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further, although they would be if the metrics were ignored:
+In revision 132 and above, the -m option takes an argument that describes how metric information should be displayed. Valid arguments are none, brief, and full. See ./acrs-demo -h for more information. For revisions below 132, -m always prevents metrics from being printed. The example below is valid for revisions lower than 132.
+
+This example is valid for revisions below 132. Below is an example of the -m option being used to suppress metrics from being shown when the summarized route list is printed. Metric arguments given on the command line are still used by the ACRS library for the purposes of summarization. Notice below that -m still doesn't allow 10.0.0.0/23m0 and 10.0.2.0/23m1 to be summarized further, although they would be if the metrics were ignored:
 
 {{{
 # ./acrs-demo -4 -m 10.0.0.0/24 10.0.1.0/24 10.0.2.0/23m1
