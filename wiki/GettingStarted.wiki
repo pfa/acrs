@@ -4,9 +4,19 @@
 
 = Introduction =
 
-ACRS is a library for IPv4 and IPv6 classless route summarization. For example, this means ACRS can summarize 10.10.10.8/30 and 10.10.10.12/30 into 10.10.10.8/29, whereas typical classful summarization would summarize all the way down to 10.0.0.0/8. The granularity provided by ACRS makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
+ACRS is a programming library for IPv4 and IPv6 classless prefix summarization, with versions available for both C++ and Python. A demo program is also provided here which fits into shell scripts easily. An example of the demo program:
 
-An arbitrary number of prefixes may be submitted for summarization. ACRS also has the ability to honor routing metrics when summarizing routes. See [GettingStarted#Using_the_demo] below for examples.
+{{{
+# ./acrs-demo 10.0.0.0/26 10.0.0.64/26 10.0.0.128/25
+10.0.0.0/24 in 0
+
+# ./acrs-demo -6 2001:db8::1/128m1 2001:db8::/128m1
+2001:db8::/127 in 1
+}}}
+
+The classless nature of ACRS provides a granularity that makes it useful as a tool to automatically optimize large access lists or firewall rule sets in network filtering applications, and also as an addition to routing protocols which minimizes the size of routing update packets and routing tables.
+
+An arbitrary number of prefixes may be submitted for summarization. ACRS also has the ability to honor routing metrics when summarizing routes. See [GettingStarted#Using_the_demo] below for more examples.
 
 The source code here provides two implementations of ACRS, one in C++ (IPv4 and IPv6) and one in Python (IPv4 only). The C++ version is recommended since it is more up to date. The C++ code contains a generic IPv4 and IPv6 address and route class, the ACRS class, and a command line based demonstration program. Included with the Python source is a CGI script and an example web page for demonstrations of ACRS on web pages. The existing "ipaddress" module for Python, which will become part of the standard library with Python version 3.3, can also be used to achieve classless summarization.
 
@@ -60,7 +70,7 @@ After compiling, try this with the demo:
 10.0.0.0/24 in 0
 }}}
 
-This shows three input routes being summarized, and the summarized route being printed to standard output. Try some other routes, too. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag. If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (not available in the revision 75 tar file or earlier). This is optional, and can be used for some prefixes and omitted for others. For example:
+This shows three input routes being summarized, and the summarized route being printed to standard output. The "in 0" message following the output prefix is the metric, and can be suppressed using the -m flag (for revisions 132 and above, the -m option requires an argument, which can be "none" to suppress the metric). If no metric is specified on the command line for a prefix, the demo program assigns a default metric of 0. To specify your own metric, append "mNUMBER" to the prefix entered on the command line (not available in the revision 75 tar file or earlier). This is optional, and can be used for some prefixes and omitted for others. For example:
 
 {{{
 # ./acrs-demo 10.0.0.0/26m1 10.0.0.64/26 10.0.0.128/25
